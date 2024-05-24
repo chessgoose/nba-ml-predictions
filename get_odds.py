@@ -1,46 +1,75 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import pandas as pd
-
-url = "https://sportsbook.draftkings.com/nba-player-props?wpsrc=Organic%20Search&wpaffn=Google&wpkw=https%3A%2F%2Fsportsbook.draftkings.com%2Fnba-player-props&wpcn=nba-player-props"  # Replace this with your desired URL
+from datetime import datetime
 
 # SQLite Backend
-# Set up the Chrome WebDriver (you need to download chromedriver.exe and specify its path)
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
-driver = webdriver.Chrome(options=chrome_options)
 
-# Open the URL in the browser
-driver.get(url)
+# pace data
+# https://www.espn.com/nba/hollinger/teamstats
 
-# Extract data using Selenium locators (modify as needed)
-# For example, let's extract all the text from paragraph elements (change the locator accordingly)
-tables = driver.find_elements(By.TAG_NAME, "table")
-print(len(tables))
+# Returns: pandas dataframe with odds 
+def get_odds_today():
+    data = []
+    headers = ["Date", "Player", "Line", "Over", "Under"]
+    url = "https://sportsbook.draftkings.com/nba-player-props?category=player-points&subcategory=points"
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
+    driver = webdriver.Chrome(options=chrome_options)
 
-data = []
-# Print the text content of each element
-for table in tables:
-    headers = ["Player", "Over", "Under"]
+    # Open the URL in the browser
+    driver.get(url)
 
-    # Locate all rows within the table
-    rows = table.find_elements(By.XPATH, ".//tbody/tr")
+    # Extract data using Selenium locators (modify as needed)
+    # For example, let's extract all the text from paragraph elements (change the locator accordingly)
+    dates = driver.find_elements(By.CLASS_NAME, "sportsbook-event-accordion__date")
+    print(len(dates))
 
-    # Iterate through rows and extract text content of each cell
-    
-    for row in rows:
-        player_name = row.find_element(By.TAG_NAME, "th").text.split("\n")[0]
-        lines = row.find_elements(By.TAG_NAME, "td")
-        row_data = [player_name] + [line.text for line in lines]
-        data.append(row_data)
-    
-# Close the browser
-driver.quit()
+    tables = driver.find_elements(By.TAG_NAME, "table")
+    print(len(tables))
+
+    assert len(tables) == 0
+
+    # Print the text content of each element
+    for i, table in enumerate(tables):
+        print(dates[i].text)
+
+        if "TODAY" not in dates[i].text:
+            continue
+
+        # Locate all rows within the table
+        rows = table.find_elements(By.XPATH, ".//tbody/tr")
+
+        # Iterate through rows and extract text content of each cell
+        
+        for row in rows:
+            player_name = row.find_element(By.TAG_NAME, "th").text.split("\n")[0]
+            lines = row.find_elements(By.TAG_NAME, "td")
+
+            #print(len(lines))
+            #print(lines[0].text)
+            #print(lines[1].text)
+
+            over_odds = float(lines[0].text.split("\n")[2].replace('−', '-'))
+            line = float(lines[0].text.split("\n")[1])
+            under_odds = float(lines[1].text.split("\n")[2].replace('−', '-'))
+            
+            row_data = [datetime.today().strftime('%Y-%m-%d'), player_name, line, under_odds, over_odds]
+            print(row_data)
+            data.append(row_data)
+        
+    # Close the browser
+    new_rows = pd.DataFrame(data, columns=headers)
+    driver.quit()
+    return new_rows
 
 # Create a Pandas DataFrame
-df = pd.DataFrame(data, columns=headers)
-
+# df['Date'] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d'))
 # Print the DataFrame
-print(df)
 
-df.to_csv("data/odds.csv")
+if __name__ == "__main__":
+    df = pd.read_csv('data/new_odds_two.csv', index_col=False)
+    headers = ["Date", "Player", "Line", "Over", "Under"]
+    new_rows = get_odds_today()
+    df = pd.concat([df, new_rows])
+    df.to_csv("data/new_odds_two.csv", index=False)
