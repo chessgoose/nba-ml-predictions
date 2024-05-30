@@ -6,6 +6,7 @@ import time
 import numpy as np
 import random
 from datetime import datetime
+from dataloading import drop_unused_statistics
 
 def calculate_t_statistic(data, value, population_mean):
     # Calculate the sample standard deviation
@@ -142,7 +143,7 @@ def calculate_features(df, today, home_teams, away_teams):
             #dataset.append([0, 0, 0, 0])
 
     new_df = pd.DataFrame(dataset, columns=headers)
-    new_df.drop(['Line T', 'L5UR'], axis=1, inplace=True)
+    drop_unused_statistics(new_df)
     return new_df
 
 if __name__ == "__main__":

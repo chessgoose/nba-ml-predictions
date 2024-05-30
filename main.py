@@ -2,14 +2,24 @@
 """
 TODO: 
 - Test correlation between EV and predictive accuracy
-- SQL Database
 - Clean up and comment code
     - Pass in "DataCollection" object with more information so you don't have to pass in a bunch of props -- OOP principles
 - include other odds for points
 
+- Train NN 
+    - Deploy NN and XG boost to production
+
+
+- Exploratory data analysis - PCA?
+
 - Feature changes (t-test statistics instead)
     - Remove games with 0 point?
 - Try fit transform on overall instead of calculting t-statistic
+- Instead of recalculating everything, it might be a good idea to just calculate the new rows 
+
+- Long term
+    - SQL Database
+
 """
 
 import numpy as np
@@ -21,11 +31,13 @@ from create_dataset_from_odds import calculate_features
 from nba_api.live.nba.endpoints import scoreboard
 from utils.odds import calculate_kelly_criterion
 import os
+import warnings
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # from colorama import Fore, Style, init, deinit
 # from src.Utils.Dictionaries import team_index_current
 # from src.Utils.tools import get_json_data, to_data_frame, get_todays_games_json, create_todays_games
-
 def get_best_model():
     new_file = ""   
     best_accuracy = 0.0

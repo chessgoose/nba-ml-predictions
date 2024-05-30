@@ -9,12 +9,11 @@ x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.2)
 
 # Define the parameter grid
 param_grid = {
-    'eta': [0.01, 0.1, 0.2],
+    'eta': [0.05, 0.1, 0.2],
     'max_depth': [3, 5, 7],
     'min_child_weight': [1, 3, 5],
     'subsample': [0.6, 0.8, 1.0],
     'colsample_bytree': [0.6, 0.8, 1.0],
-    'gamma': [0, 0.1, 0.3],
     'n_estimators': [100, 200, 300],
     'scale_pos_weight': [1, 2, 3]  # Adjust if dealing with imbalanced data
 }

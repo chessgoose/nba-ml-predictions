@@ -9,10 +9,13 @@ from datetime import datetime
 # https://www.espn.com/nba/hollinger/teamstats
 
 # Returns: pandas dataframe with odds 
-def get_odds_today():
+def get_odds_today(league="nba"):
     data = []
     headers = ["Date", "Player", "Line", "Over", "Under"]
     url = "https://sportsbook.draftkings.com/nba-player-props?category=player-points&subcategory=points"
+    if league != "nba":
+        url = "https://sportsbook.draftkings.com/leagues/basketball/wnba?category=player-points&subcategory=points"
+        
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
     driver = webdriver.Chrome(options=chrome_options)
@@ -28,7 +31,7 @@ def get_odds_today():
     tables = driver.find_elements(By.TAG_NAME, "table")
     print(len(tables))
 
-    assert len(tables) == 0
+    assert len(tables) != 0
 
     # Print the text content of each element
     for i, table in enumerate(tables):
@@ -68,8 +71,11 @@ def get_odds_today():
 # Print the DataFrame
 
 if __name__ == "__main__":
-    df = pd.read_csv('data/new_odds_two.csv', index_col=False)
+    file_name = 'data/new_odds_two.csv'
+    #file_name = 'data/wnba_odds.csv'
+    df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
     new_rows = get_odds_today()
+    #new_rows = get_odds_today("wnba")
     df = pd.concat([df, new_rows])
-    df.to_csv("data/new_odds_two.csv", index=False)
+    df.to_csv(file_name, index=False)

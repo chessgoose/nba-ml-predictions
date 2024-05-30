@@ -11,11 +11,14 @@ import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+random_seed = 1234
+np.random.seed(random_seed)
+
 data, OU = load_data()
 acc_results = []
 
-for x in tqdm(range(20)):
-    x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.15)
+for x in tqdm(range(50)):
+    x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.2, shuffle=True)
 
     train = xgb.DMatrix(x_train, label=y_train)
     test = xgb.DMatrix(x_test, label=y_test)
@@ -43,7 +46,15 @@ for x in tqdm(range(20)):
     acc = round(accuracy_score(y_test, y) * 100, 1)
     print(f"{acc}%")
     acc_results.append(acc)
+    
     # only save results if they are the best so far
     if acc == max(acc_results):
+        feature_important = model.get_score(importance_type='weight')
+        keys = list(feature_important.keys())
+        values = list(feature_important.values())
+
+        scores = pd.DataFrame(data=values, index=keys, columns=["score"]).sort_values(by = "score", ascending=False)
+        print(scores)
+
         model.save_model('models/XGBoost_{}%_OU.json'.format(acc))
 
