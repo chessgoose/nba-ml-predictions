@@ -25,7 +25,7 @@ for x in tqdm(range(50)):
     evals = [(train, 'train'), (test, 'eval')]
 
     param = {
-        'max_depth': 5,
+        'max_depth': 4,
         'eta': 0.05,
         'objective': 'binary:logistic',
         'subsample': 0.8

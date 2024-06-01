@@ -71,11 +71,18 @@ def get_odds_today(league="nba"):
 # Print the DataFrame
 
 if __name__ == "__main__":
+    file_name = 'data/wnba_odds.csv'
+    df = pd.read_csv(file_name, index_col=False)
+    headers = ["Date", "Player", "Line", "Over", "Under"]
+    new_rows = get_odds_today("wnba")
+    df = pd.concat([df, new_rows])
+    df.to_csv(file_name, index=False)
+
+    """
     file_name = 'data/new_odds_two.csv'
-    #file_name = 'data/wnba_odds.csv'
     df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
     new_rows = get_odds_today()
-    #new_rows = get_odds_today("wnba")
     df = pd.concat([df, new_rows])
     df.to_csv(file_name, index=False)
+    """

@@ -93,18 +93,18 @@ print(predictions)
 
 y = []
 ev = []
+wagers = []
 
 for i, z in enumerate(predictions):
-    # calculate ev
-    #choice = np.argmax(z)
     choice = round(z)
-    #expected_value = calculate_ev(odds_today.iloc[i]["Over"], z[1]) if choice == 1 else calculate_ev(odds_today.iloc[i]["Under"], z[0])
+    kelly_fraction = calculate_kelly_criterion(odds_today.iloc[i]["Over"], z) if choice == 1 else calculate_kelly_criterion(odds_today.iloc[i]["Under"], 1 - z)
     expected_value = calculate_ev(odds_today.iloc[i]["Over"], z) if choice == 1 else calculate_ev(odds_today.iloc[i]["Under"], 1 - z)
     y.append(choice)
     ev.append(expected_value)
-
+    wagers.append(kelly_fraction)
 
 odds_today["Prediction"] = y
 odds_today["EV"] = ev
+odds_today["Wager Fraction"] = wagers
 
 print(odds_today)

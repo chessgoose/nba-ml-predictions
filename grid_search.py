@@ -11,7 +11,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Define the hyperparameter grid
-x_train, y_train = load_data()
+x_train, y_train = load_data("wnba")
 #x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.1)
 
 param_grid = {
@@ -26,7 +26,7 @@ xgb_model = xgb.XGBClassifier()
 
 # Create the GridSearchCV object
 # n_splits small because my shit small
-grid_search = GridSearchCV(xgb_model, param_grid, cv=4, scoring='accuracy', verbose=2)
+grid_search = GridSearchCV(xgb_model, param_grid, cv=5, scoring='accuracy', verbose=2)
 
 # Fit the GridSearchCV object to the training data
 grid_search.fit(x_train, y_train)
