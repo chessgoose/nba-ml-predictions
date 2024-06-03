@@ -9,12 +9,14 @@ from tqdm import tqdm
 from dataloading import load_data
 import warnings
 
+league = "wnba"
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 random_seed = 1234
 np.random.seed(random_seed)
 
-data, OU = load_data()
+data, OU = load_data(league)
 acc_results = []
 
 for x in tqdm(range(50)):
@@ -37,6 +39,9 @@ for x in tqdm(range(50)):
     
     print("Best iteration: ", model.best_iteration)
 
+    if model.best_iteration <= 10:
+        continue
+
     predictions = model.predict(test)
     y = []
 
@@ -56,5 +61,5 @@ for x in tqdm(range(50)):
         scores = pd.DataFrame(data=values, index=keys, columns=["score"]).sort_values(by = "score", ascending=False)
         print(scores)
 
-        model.save_model('models/XGBoost_{}%_OU.json'.format(acc))
+        model.save_model('models/' + league + '/XGBoost_{}%_OU.json'.format(acc))
 

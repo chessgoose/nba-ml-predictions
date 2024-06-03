@@ -7,7 +7,9 @@ import pandas as pd
 #df.drop(['Line T', 'UR'], axis=1, inplace=True)
 def drop_unused_statistics(df):
     #df.drop(["FG T", "Home", "Rest Days", "Recent T"], axis=1, inplace=True)
-    df.drop([ "FG T", "UR", "Home", "Recent T"], axis=1, inplace=True)
+    # df.drop([ "FG T", "UR", "Home", "Recent T"], axis=1, inplace=True)
+    df.drop([ "FG T", "Home", "UR", "Recent T"], axis=1, inplace=True)
+
 
 
 def load_data(league="nba"):

@@ -3,12 +3,13 @@
 TODO: 
 - Test correlation between EV and predictive accuracy
 - Clean up and comment code
-    - Pass in "DataCollection" object with more information so you don't have to pass in a bunch of props -- OOP principles
+    - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
 - include other odds for points
 
 - Train NN 
-    - Deploy NN and XG boost to production
+    - Deploy NN and XG boost 
 
+- Better eror handling in get_odds
 
 - Exploratory data analysis - PCA?
 
@@ -33,22 +34,23 @@ from utils.odds import calculate_kelly_criterion
 import os
 import warnings
 
+league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # from colorama import Fore, Style, init, deinit
 # from src.Utils.Dictionaries import team_index_current
 # from src.Utils.tools import get_json_data, to_data_frame, get_todays_games_json, create_todays_games
-def get_best_model():
+def get_best_model(league):
     new_file = ""   
     best_accuracy = 0.0
-    for model_name in os.listdir('models'):
+    for model_name in os.listdir(f'models/{league}'):
         model_accuracy = float(model_name.split("%")[0].split("_")[1])
         if model_accuracy > best_accuracy:
             new_file = model_name
             best_accuracy = model_accuracy
-    return 'models/' + new_file
+    return f'models/{league}/' + new_file
 
-ou_model_name = get_best_model()
+ou_model_name = get_best_model(league)
 print(ou_model_name)
 
 def calculate_ev(odds, probability):
