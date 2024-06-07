@@ -6,8 +6,8 @@ TODO:
     - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
 - include other odds for points
 
-- Train NN 
-    - Deploy NN and XG boost 
+- Early stopping 
+- Deploy
 
 - Better eror handling in get_odds
 
@@ -16,7 +16,6 @@ TODO:
 - Feature changes (t-test statistics instead)
     - Remove games with 0 point?
 - Try fit transform on overall instead of calculting t-statistic
-- Instead of recalculating everything, it might be a good idea to just calculate the new rows 
 
 - Long term
     - SQL Database
@@ -29,6 +28,7 @@ import xgboost as xgb
 import sys
 from get_odds import get_odds_today
 from create_dataset_from_odds import calculate_features
+from wnba_dataset import calculate_wnba_features
 from nba_api.live.nba.endpoints import scoreboard
 from utils.odds import calculate_kelly_criterion
 import os
@@ -65,10 +65,13 @@ def calculate_ev(odds, probability):
     return res
 
 # get odds
-odds_today = get_odds_today()
+odds_today = get_odds_today(league)
+if odds_today.empty:
+    sys.exit(f"No {league} games for today")
+
 print(odds_today)
 
-# Calculate features based on stuff
+# Home teams -- not relevant rn so it doens't really work
 home_teams = []
 away_teams = []
 try:
@@ -83,7 +86,7 @@ except:
 
 print("Home teams: ", home_teams)
 print("Away teams; ", away_teams)
-data = calculate_features(odds_today, True, home_teams, away_teams)
+data = calculate_features(odds_today, True, home_teams, away_teams) if league == "nba" else calculate_wnba_features(odds_today, True, home_teams, away_teams)
 print(data)
 
 # Get XG Boost model's predictions

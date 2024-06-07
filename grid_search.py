@@ -15,7 +15,7 @@ x_train, y_train = load_data("wnba")
 #x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.1)
 
 param_grid = {
-    'max_depth': [3, 4, 5],
+    'max_depth': [3, 5],
     'learning_rate': [0.05, 0.075],
     'subsample': [0.8, 1],
     'objective': ['binary:logistic']

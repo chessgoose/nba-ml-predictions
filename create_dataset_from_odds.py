@@ -26,8 +26,9 @@ def calculate_features(df, today, home_teams, away_teams):
     player_count = 0
 
     for i in superstars:
-        #if player_count > 1:
+        #if player_count == 1:
             #break
+
         try:
             if i == "Nicolas Claxton":
                 i = "Nic Claxton"
@@ -86,11 +87,14 @@ def calculate_features(df, today, home_teams, away_teams):
             # https://www.nba.com/stats/teams/advanced?dir=-1&sort=PACE&SeasonType=Regular+Season
 
             # weekly_mean_points = gamelog["PTS"].rolling(3).mean()
-            sample_mean_mins = gamelog.loc[row_index + 1 :, "MIN"].mean()
+            #sample_mean_mins = gamelog.loc[row_index + 1 :, "MIN"].mean()
             # how many minutes -- maybe make 4 games to reduce variance
-            rolling_avg_mins = gamelog.loc[row_index + 1 : row_index + 4, "MIN"].mean()  
             # Rolling average of the past 2 games minutes -- has this player been playing more minutes recently? 
-            difference_mins = rolling_avg_mins - sample_mean_mins
+            # rolling_avg_mins = gamelog.loc[row_index + 1 : row_index + 4, "MIN"].mean()  
+            # difference_mins = rolling_avg_mins - sample_mean_mins
+            last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "MIN"]
+            past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
+            difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
 
             # Last 5 hit rate
             last_5_points = gamelog.loc[row_index + 1 : row_index + 5, "PTS"]
@@ -113,6 +117,9 @@ def calculate_features(df, today, home_teams, away_teams):
 
             games_list = last_5_points.tolist()
             recent_t_statistic = calculate_t_statistic(games_list, np.mean(games_list), past_games.mean())
+
+            # Line Z instead of Line T? doesn't work as well
+            all_games = past_games.tolist()
             line_t_statistic = calculate_t_statistic(games_list, row["Line"], past_games.mean())
 
             # not row["Line"]
@@ -142,7 +149,9 @@ def calculate_features(df, today, home_teams, away_teams):
             #dataset.append([0, 0, 0, 0])
 
     new_df = pd.DataFrame(dataset, columns=headers)
-    # drop_unused_statistics(new_df)
+    if today:
+        drop_unused_statistics(new_df)
+
     return new_df
 
 if __name__ == "__main__":

@@ -11,25 +11,29 @@ league = "nba"
 random_seed = 1234
 torch.manual_seed(random_seed)
 
+# Define the neural network model (assuming NeuralNet is already defined)
 class NeuralNet(nn.Module):
-    def __init__(self, num_features: int):
-        super().__init__()
-        #self.flatten = nn.Flatten()
-        self.network = nn.Sequential(
-            nn.Linear(num_features, 3 * num_features),
-            nn.ReLU(),
-            nn.Linear(3 * num_features, 1),
-            nn.Sigmoid()
-        )
+    def __init__(self, input_size):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(input_size, 32)
+        self.bn1 = nn.BatchNorm1d(32)
+        self.fc2 = nn.Linear(32, 1)
+        self.dropout = nn.Dropout(0.2)  # 50% dropout
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        return self.network(x)
+        out = self.fc1(x)
+        out = F.relu(self.bn1(out))
+        out = self.dropout(out)
+        out = self.fc2(out)
+        out = self.sigmoid(out)
+        return out
 
 # Load data
 X, y = load_data(league)
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_seed, shuffle=True)
 
 # Scale the features
 """
@@ -46,33 +50,17 @@ y_test_tensor = torch.tensor(y_test.values, dtype=torch.float32).view(-1, 1)
 
 # Create TensorDataset and DataLoader
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-train_loader = DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
-
-# Define the neural network model (assuming NeuralNet is already defined)
-class NeuralNet(nn.Module):
-    def __init__(self, input_size):
-        super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(64, 1)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu(out)
-        out = self.fc2(out)
-        out = self.sigmoid(out)
-        return out
+train_loader = DataLoader(dataset=train_dataset, batch_size=25, shuffle=True)
 
 # Initialize the model, loss function, and optimizer
 num_features = X_train.shape[1]
 model = NeuralNet(num_features)
 criterion = nn.BCELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=5e-4)
 
 # Train the model
 # Consider minibatched vs not batched training
-num_epochs = 30
+num_epochs = 50
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
@@ -86,7 +74,7 @@ for epoch in range(num_epochs):
     
     # implement early stopping
     
-    if (epoch + 1) % 10 == 0:
+    if (epoch + 1) % 5 == 0:
         avg_loss = running_loss / len(train_loader)
         print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {avg_loss:.4f}')
 
@@ -95,7 +83,7 @@ torch.save(model.state_dict(), f'nn_models/{league}/model.pth')
 
 # Test on evaluation set 
 test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
-test_loader = DataLoader(dataset=test_dataset, batch_size=16, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=32, shuffle=True)
 
 model.eval()
 with torch.no_grad():

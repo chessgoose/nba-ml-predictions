@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 from dataloading import load_data
@@ -27,7 +27,7 @@ for x in tqdm(range(50)):
     evals = [(train, 'train'), (test, 'eval')]
 
     param = {
-        'max_depth': 4,
+        'max_depth': 3,
         'eta': 0.05,
         'objective': 'binary:logistic',
         'subsample': 0.8
@@ -39,7 +39,7 @@ for x in tqdm(range(50)):
     
     print("Best iteration: ", model.best_iteration)
 
-    if model.best_iteration <= 10:
+    if model.best_iteration <= 30:
         continue
 
     predictions = model.predict(test)
@@ -49,8 +49,12 @@ for x in tqdm(range(50)):
         y.append(round(z))
 
     acc = round(accuracy_score(y_test, y) * 100, 1)
-    print(f"{acc}%")
+    print(f"Accuracy: {acc}%")
     acc_results.append(acc)
+
+    # Calculate f1 score 
+    f1 = f1_score(y_test, y, average='weighted')  # Use 'weighted' to handle class imbalance
+    print(f"F1 Score: {f1:.2f}")
     
     # only save results if they are the best so far
     if acc == max(acc_results):

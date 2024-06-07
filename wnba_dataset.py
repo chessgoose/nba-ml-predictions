@@ -24,7 +24,7 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
 
 #Calculate features given our odds
-def calculate_features(df, today, home_teams, away_teams):
+def calculate_wnba_features(df, today, home_teams, away_teams):
     superstars = df['Player']
     game_records_by_player = {}
     player_count = 0
@@ -86,15 +86,17 @@ def calculate_features(df, today, home_teams, away_teams):
             gamelog = ro.conversion.rpy2py(player_stats)
             # print(gamelog)
             gamelog['GAME_DATE'] = pd.to_datetime(gamelog['GAME_DATE'], format="%b %d, %Y")
+            gamelog['FGA'] = gamelog['FGA'].astype(float)
+            gamelog['MIN'] = gamelog['MIN'].astype(float)
+            gamelog['PTS'] = gamelog['PTS'].astype(float)
             game_records_by_player[i] = gamelog
             gamelog.reset_index(drop=True, inplace=True)
             player_count += 1
         except Exception as e:
             print(e)
-    
   
     print(f"Collected records for {player_count} players")
-
+    
     dataset = []
     headers = ["FG T", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR", "Recent T", "Line T"]
     num_features = len(headers)
@@ -107,22 +109,22 @@ def calculate_features(df, today, home_teams, away_teams):
             gamelog = game_records_by_player[row["Player"]]
             # print(gamelog)
 
+            gamelog['GAME_DATE'] = pd.to_datetime(gamelog['GAME_DATE'])
+
             row_index = None
             if not today:
                 row_index = gamelog.index[gamelog["GAME_DATE"] == row["Date"]].tolist()[0]
             else:
                 row_index = -1
 
+            # print("Row index:", row_index)
             # FG_pct
-            gamelog['FGA'] = gamelog['FGA'].astype(float)
-            #print(gamelog['FGA'])
-            section = gamelog.loc[row_index + 1 :, "FGA"]
-
             sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGA"].mean()
-            # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean()  
+            # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
             fg_games_list = gamelog.loc[row_index + 1 : row_index + 4, "FGA"].tolist()
             difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
             #difference_fg = (rolling_avg_fg_pct - sample_mean_fg_pct) 
+
             #print("Average FG PCT: ", sample_mean_fg_pct)
 
             # TODO: calculate number of miles needed to travel from point a to point b if the previous game was further
@@ -131,20 +133,19 @@ def calculate_features(df, today, home_teams, away_teams):
             # https://www.nba.com/stats/teams/advanced?dir=-1&sort=PACE&SeasonType=Regular+Season
 
             # weekly_mean_points = gamelog["PTS"].rolling(3).mean()
-            gamelog['MIN'] = gamelog['MIN'].astype(float)
-
-            sample_mean_mins = gamelog.loc[row_index + 1 :, "MIN"].mean()
+            #sample_mean_mins = gamelog.loc[row_index + 1 :, "MIN"].mean()
             # how many minutes -- maybe make 4 games to reduce variance
-            rolling_avg_mins = gamelog.loc[row_index + 1 : row_index + 4, "MIN"].mean()  
             # Rolling average of the past 2 games minutes -- has this player been playing more minutes recently? 
-            difference_mins = rolling_avg_mins - sample_mean_mins
+            # rolling_avg_mins = gamelog.loc[row_index + 1 : row_index + 4, "MIN"].mean()  
+            # difference_mins = rolling_avg_mins - sample_mean_mins
+            last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "MIN"]
+            past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
+            difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
 
             # Last 5 hit rate
-            gamelog['PTS'] = gamelog['PTS'].astype(float)
-
             last_5_points = gamelog.loc[row_index + 1 : row_index + 5, "PTS"]
             last_5_hit_rate = sum(i <= row["Line"] for i in last_5_points)
-            #print("Last 5 hit rate", last_5_hit_rate)
+            print("Last 5 hit rate", last_5_hit_rate)
 
             # Home or away (home = 1, away = 0)
             home = 1
@@ -175,7 +176,7 @@ def calculate_features(df, today, home_teams, away_teams):
                 rest_days = (gamelog.loc[row_index, 'GAME_DATE'] - gamelog.loc[row_index + 1, 'GAME_DATE']).days
             else:
                 rest_days = (pd.to_datetime("now") - gamelog.loc[0, 'GAME_DATE']).days
-            # print("Rest days: ", rest_days)
+            print("Rest days: ", rest_days)
 
             if not today:
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
@@ -183,8 +184,7 @@ def calculate_features(df, today, home_teams, away_teams):
                 dataset.append([difference_fg, home, difference_mins, rest_days, last_5_hit_rate, overall_under_rate, recent_t_statistic, line_t_statistic, OU_result])
             else:
                 dataset.append([difference_fg, home, difference_mins, rest_days, last_5_hit_rate, overall_under_rate, recent_t_statistic, line_t_statistic])
-        except Exception as e:
-            # print(e)
+        except:
             if today:
                 dataset.append([0 in range(num_features)])
             print("Failed finding record for player: " + row["Player"])
@@ -192,10 +192,14 @@ def calculate_features(df, today, home_teams, away_teams):
             #dataset.append([0, 0, 0, 0])
 
     new_df = pd.DataFrame(dataset, columns=headers)
-    # drop_unused_statistics(new_df)
+    if today:
+        drop_unused_statistics(new_df)
+
+    new_df['FG T'] = pd.to_numeric(df['FG T'], errors='coerce')
+    new_df = df.fillna(0)
     return new_df
 
 if __name__ == "__main__":
     df = pd.read_csv('data/wnba_odds.csv')
-    new_df = calculate_features(df, False, [], [])
+    new_df = calculate_wnba_features(df, False, [], [])
     new_df.to_csv("data/wnba_train_over_under_data.csv", index=False)

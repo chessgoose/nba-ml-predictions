@@ -2,11 +2,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import pandas as pd
 from datetime import datetime
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # SQLite Backend
-
-# pace data
-# https://www.espn.com/nba/hollinger/teamstats
+league = "wnba"
 
 # Returns: pandas dataframe with odds 
 def get_odds_today(league="nba"):
@@ -23,12 +23,17 @@ def get_odds_today(league="nba"):
     # Open the URL in the browser
     driver.get(url)
 
-    # Extract data using Selenium locators (modify as needed)
-    # For example, let's extract all the text from paragraph elements (change the locator accordingly)
-    dates = driver.find_elements(By.CLASS_NAME, "sportsbook-event-accordion__date")
+    # Extract data using Selenium locators
+
+    # Define a wait object with a timeout
+    wait = WebDriverWait(driver, 5)  #5 seconds timeout
+
+    # Wait until the dates elements are present
+    dates = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "sportsbook-event-accordion__date")))
     print(len(dates))
 
-    tables = driver.find_elements(By.TAG_NAME, "table")
+    # Wait until the tables elements are present
+    tables = wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "table")))
     print(len(tables))
 
     assert len(tables) != 0
@@ -71,18 +76,17 @@ def get_odds_today(league="nba"):
 # Print the DataFrame
 
 if __name__ == "__main__":
-    file_name = 'data/wnba_odds.csv'
-    df = pd.read_csv(file_name, index_col=False)
-    headers = ["Date", "Player", "Line", "Over", "Under"]
-    new_rows = get_odds_today("wnba")
-    df = pd.concat([df, new_rows])
-    df.to_csv(file_name, index=False)
-
-    """
-    file_name = 'data/new_odds_two.csv'
-    df = pd.read_csv(file_name, index_col=False)
-    headers = ["Date", "Player", "Line", "Over", "Under"]
-    new_rows = get_odds_today()
-    df = pd.concat([df, new_rows])
-    df.to_csv(file_name, index=False)
-    """
+    if league == "wnba":
+        file_name = 'data/wnba_odds.csv'
+        df = pd.read_csv(file_name, index_col=False)
+        headers = ["Date", "Player", "Line", "Over", "Under"]
+        new_rows = get_odds_today("wnba")
+        df = pd.concat([df, new_rows])
+        df.to_csv(file_name, index=False)
+    else:
+        file_name = 'data/new_odds_two.csv'
+        df = pd.read_csv(file_name, index_col=False)
+        headers = ["Date", "Player", "Line", "Over", "Under"]
+        new_rows = get_odds_today()
+        df = pd.concat([df, new_rows])
+        df.to_csv(file_name, index=False)
