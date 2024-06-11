@@ -193,10 +193,10 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
 
     new_df = pd.DataFrame(dataset, columns=headers)
     if today:
-        drop_unused_statistics(new_df)
+        drop_unused_statistics(new_df, "wnba")
 
-    new_df['FG T'] = pd.to_numeric(df['FG T'], errors='coerce')
-    new_df = df.fillna(0)
+    new_df['FG T'] = pd.to_numeric(new_df['FG T'], errors='coerce')
+    new_df = new_df.fillna(0)
     return new_df
 
 if __name__ == "__main__":

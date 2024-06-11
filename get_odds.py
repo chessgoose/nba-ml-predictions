@@ -6,7 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 # SQLite Backend
-league = "wnba"
 
 # Returns: pandas dataframe with odds 
 def get_odds_today(league="nba"):
@@ -67,26 +66,25 @@ def get_odds_today(league="nba"):
             data.append(row_data)
         
     # Close the browser
-    new_rows = pd.DataFrame(data, columns=headers)
     driver.quit()
+
+    new_rows = pd.DataFrame(data, columns=headers)
     return new_rows
 
-# Create a Pandas DataFrame
-# df['Date'] = pd.to_datetime(datetime.today().strftime('%Y-%m-%d'))
-# Print the DataFrame
-
 if __name__ == "__main__":
-    if league == "wnba":
-        file_name = 'data/wnba_odds.csv'
-        df = pd.read_csv(file_name, index_col=False)
-        headers = ["Date", "Player", "Line", "Over", "Under"]
-        new_rows = get_odds_today("wnba")
+    # Find both odds for NBA and WNBA
+    file_name = 'data/wnba_odds.csv'
+    df = pd.read_csv(file_name, index_col=False)
+    headers = ["Date", "Player", "Line", "Over", "Under"]
+    new_rows = get_odds_today("wnba")
+    if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
-    else:
-        file_name = 'data/new_odds_two.csv'
-        df = pd.read_csv(file_name, index_col=False)
-        headers = ["Date", "Player", "Line", "Over", "Under"]
-        new_rows = get_odds_today()
+
+    file_name = 'data/new_odds_two.csv'
+    df = pd.read_csv(file_name, index_col=False)
+    headers = ["Date", "Player", "Line", "Over", "Under"]
+    new_rows = get_odds_today()
+    if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)

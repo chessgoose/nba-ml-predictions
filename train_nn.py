@@ -11,7 +11,7 @@ league = "nba"
 random_seed = 1234
 torch.manual_seed(random_seed)
 
-# Define the neural network model (assuming NeuralNet is already defined)
+# Simple feed forward neural network 
 class NeuralNet(nn.Module):
     def __init__(self, input_size):
         super(NeuralNet, self).__init__()
@@ -50,7 +50,7 @@ y_test_tensor = torch.tensor(y_test.values, dtype=torch.float32).view(-1, 1)
 
 # Create TensorDataset and DataLoader
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-train_loader = DataLoader(dataset=train_dataset, batch_size=25, shuffle=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
 
 # Initialize the model, loss function, and optimizer
 num_features = X_train.shape[1]

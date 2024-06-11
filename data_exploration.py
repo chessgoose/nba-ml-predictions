@@ -1,6 +1,6 @@
 import pandas as pd
 
-data = pd.read_csv('data/train_playoffs_over_under_data.csv')
+data = pd.read_csv('data/wnba_train_regression.csv')
 print(data.head())
 OU = data['OU Result']
 data.drop(['OU Result'], axis=1, inplace=True)

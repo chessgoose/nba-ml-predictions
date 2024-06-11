@@ -15,12 +15,12 @@ import pandas as pd
 
 # ["FG T", "Home", "Rest Days", "L5UR", "UR", "Recent T", "OU Result"]
 #df.drop(['Line T', 'UR'], axis=1, inplace=True)
-def drop_unused_statistics(df):
+def drop_unused_statistics(df, league):
     # WNBA
-    df.drop(["UR", "Home", "L5UR", "Line T", "Recent T"], axis=1, inplace=True)
-
-    # NBA
-    # df.drop(["UR", "Home", "L5UR", 'Rest Days', "Line T", "Recent T"], axis=1, inplace=True)
+    if league == "wnba":
+        df.drop(["UR", "Home", "L5UR", "Line T", "Recent T"], axis=1, inplace=True)
+    else:
+        df.drop(["UR", "Home", "L5UR", 'Rest Days', "Recent T"], axis=1, inplace=True)
 
     # df.drop(["L5UR", "Home", "Recent T"], axis=1, inplace=True)
     # df.drop(['UR', 'Recent T'], axis=1, inplace=True)
@@ -33,7 +33,7 @@ def load_data(league="nba"):
 
     OU = data['OU Result']
     # "FG T" and "OU Result"
-    drop_unused_statistics(data)
+    drop_unused_statistics(data, league)
     print(data.head())
 
     data.drop(["OU Result"], axis=1, inplace=True)
@@ -43,4 +43,15 @@ def load_data(league="nba"):
     data = data.astype(float)
 
     return data, OU
+
+def load_regression_data():
+    data = pd.read_csv('data/wnba_train_regression.csv')
+
+    # data['UR'] = scaler.fit_transform(data[['UR']])
+    print(f'Number of rows: {len(data.index)}')
+
+    data = data.astype(float)
+
+    return data
+
 
