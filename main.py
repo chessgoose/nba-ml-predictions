@@ -2,6 +2,8 @@
 """
 TODO: 
 
+- Correlation matrix between each component
+    - FGM and points might be stronger than what we have currently
 
 - SQLite to store all 2022-23 data 
 - Load in and train XGBoost quantile regression

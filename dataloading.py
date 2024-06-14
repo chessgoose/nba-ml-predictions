@@ -44,8 +44,8 @@ def load_data(league="nba"):
 
     return data, OU
 
-def load_regression_data():
-    data = pd.read_csv('data/wnba_train_regression.csv')
+def load_regression_data(league):
+    data = pd.read_csv(f'data/{league}_train_regression.csv')
 
     # data['UR'] = scaler.fit_transform(data[['UR']])
     print(f'Number of rows: {len(data.index)}')

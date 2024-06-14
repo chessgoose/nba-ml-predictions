@@ -1,12 +1,12 @@
 import pandas as pd
+from nba_api.stats.static import players
+from nba_api.stats.endpoints import playergamelog
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
 import time
 import numpy as np
 import random
 from datetime import datetime
 from dataloading import drop_unused_statistics
-import rpy2
-import rpy2.robjects as ro
 
 def calculate_t_statistic(data, value, population_mean):
     # Calculate the sample standard deviation
@@ -19,86 +19,36 @@ def calculate_t_statistic(data, value, population_mean):
     t_statistic_manual = (value - population_mean) / (sample_std / np.sqrt(sample_size))
     return t_statistic_manual
 
-import rpy2.robjects as robjects
-from rpy2.robjects.packages import importr
-from rpy2.robjects import pandas2ri
-
 #Calculate features given our odds
-def calculate_wnba_features(df, today, home_teams, away_teams):
+def calculate_features(df, today, home_teams, away_teams):
     superstars = df['Player']
     game_records_by_player = {}
     player_count = 0
-
-    # Activate pandas2ri for seamless conversion between pandas and R data frames
-    pandas2ri.activate()
-
-    # Import the required R package
-    wehoop = importr('wehoop')
-
-    # Define the R function in Python
-    r_code = """
-    player_index <- wehoop::wnba_playerindex(season=wehoop::most_recent_wnba_season())
-    thing <- player_index$PlayerIndex
-
-    get_player_stats <- function(df, first_name, last_name) {
-    # Find the player ID based on the first and last name
-    player_ids <- which(df$PLAYER_LAST_NAME == last_name & df$PLAYER_FIRST_NAME == first_name)
-    player_id <- df$PERSON_ID[player_ids]
-
-    # Check if player ID is found
-    if(length(player_id) == 0) {
-        stop("Player not found in the dataframe")
-    }
-
-    # Print the player ID (optional)
-    print(player_id)
-
-    Sys.sleep(0.5)
-
-    # Get the player's game log statistics for the most recent WNBA season
-    stats <- wehoop::wnba_playergamelog(player_id = player_id, season = wehoop::most_recent_wnba_season())
-
-    return(stats$PlayerGameLog)
-    }
-    """
-
-    # Execute the R code to define the function and variables
-    robjects.r(r_code)
-
-    # Access the player index dataframe
-    player_index = robjects.globalenv['thing']
-
-    # Define the Python function to call the R function
-    def get_player_stats(first_name, last_name):
-        r_get_player_stats = robjects.globalenv['get_player_stats']
-        stats = r_get_player_stats(player_index, first_name, last_name)
-        return stats
 
     for i in superstars:
         #if player_count == 1:
             #break
 
-        if i in game_records_by_player:
-            continue
-        
-        i = i.lstrip()
-        first_name = i.split(" ")[0]
-        last_name = i.split(" ")[1]
         try:
-            player_stats = get_player_stats(first_name, last_name)
-            gamelog = ro.conversion.rpy2py(player_stats)
+            if i == "Nicolas Claxton":
+                i = "Nic Claxton"
+
+            if i in game_records_by_player:
+                continue
+
+            player_id = players.find_players_by_full_name(i)[0]['id']
+            time.sleep(random.randint(1, 3))
+            gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2023', season_type_all_star="Playoffs").get_data_frames()[0]
             gamelog['GAME_DATE'] = pd.to_datetime(gamelog['GAME_DATE'], format="%b %d, %Y")
-            gamelog['FGA'] = gamelog['FGA'].astype(float)
-            gamelog['MIN'] = gamelog['MIN'].astype(float)
-            gamelog['PTS'] = gamelog['PTS'].astype(float)
+            column_list = gamelog.columns.tolist()
+            print(column_list)
             game_records_by_player[i] = gamelog
-            gamelog.reset_index(drop=True, inplace=True)
             player_count += 1
-        except Exception as e:
-            print(e)
-  
-    print(f"Collected records for {player_count} players")
+        except:
+            continue
     
+    print(f"Collected records for {player_count} players")
+
     dataset = []
     headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days"]
     num_features = len(headers)
@@ -123,9 +73,11 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
 
             # print("Row index:", row_index)
             # FG_pct
-            sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGA"].mean()
+
+            # maybe calculate true shooting percentage instead... 
+            sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGM"].mean()
             # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
-            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
+            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGM"].tolist()
             difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
             #difference_fg = (rolling_avg_fg_pct - sample_mean_fg_pct) 
 
@@ -177,13 +129,9 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             #dataset.append([0, 0, 0, 0])
 
     new_df = pd.DataFrame(dataset, columns=headers)
-
-    new_df['FG T'] = pd.to_numeric(new_df['FG T'], errors='coerce')
-    new_df = new_df.fillna(0)
-    new_df = new_df.astype(float)
     return new_df
 
 if __name__ == "__main__":
-    df = pd.read_csv('data/wnba_odds.csv')
-    new_df = calculate_wnba_features(df, False, [], [])
-    new_df.to_csv("data/wnba_train_regression.csv", index=False)
+    df = pd.read_csv('data/new_odds_two.csv')
+    new_df = calculate_features(df, False, [], [])
+    new_df.to_csv("data/nba_train_regression.csv", index=False)

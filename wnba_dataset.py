@@ -89,6 +89,8 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             gamelog['FGA'] = gamelog['FGA'].astype(float)
             gamelog['MIN'] = gamelog['MIN'].astype(float)
             gamelog['PTS'] = gamelog['PTS'].astype(float)
+            gamelog['FTA'] = gamelog['FTA'].astype(float)
+            gamelog['eFG%'] = gamelog['PTS'] / (2 * gamelog['FGA'] + gamelog['FTA']) # OS% = PTS / (2 * FGA + FTA)
             game_records_by_player[i] = gamelog
             gamelog.reset_index(drop=True, inplace=True)
             player_count += 1
@@ -98,7 +100,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["FG T", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR", "Recent T", "Line T"]
+    headers = ["FG T", "eFG T", "Minutes Diff", "Rest Days", "L5UR", "UR", "Recent T", "Line T"]
     num_features = len(headers)
     
     if not today:
@@ -121,9 +123,15 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             # FG_pct
             sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGA"].mean()
             # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
-            fg_games_list = gamelog.loc[row_index + 1 : row_index + 4, "FGA"].tolist()
+            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
             difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
             #difference_fg = (rolling_avg_fg_pct - sample_mean_fg_pct) 
+
+
+            sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGA"].mean()
+            # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
+            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
+            difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
 
             #print("Average FG PCT: ", sample_mean_fg_pct)
 
@@ -138,9 +146,9 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             # Rolling average of the past 2 games minutes -- has this player been playing more minutes recently? 
             # rolling_avg_mins = gamelog.loc[row_index + 1 : row_index + 4, "MIN"].mean()  
             # difference_mins = rolling_avg_mins - sample_mean_mins
-            last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "MIN"]
-            past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
-            difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
+            last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "eFG%"]
+            past_minutes = gamelog.loc[row_index + 1 :, "eFG%"]
+            difference_efg = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
 
             # Last 5 hit rate
             last_5_points = gamelog.loc[row_index + 1 : row_index + 5, "PTS"]
@@ -181,9 +189,9 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             if not today:
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
                 # headers = ["FG PCT", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR"] 
-                dataset.append([difference_fg, home, difference_mins, rest_days, last_5_hit_rate, overall_under_rate, recent_t_statistic, line_t_statistic, OU_result])
+                dataset.append([difference_fg, difference_efg, difference_mins, rest_days, last_5_hit_rate, overall_under_rate, recent_t_statistic, line_t_statistic, OU_result])
             else:
-                dataset.append([difference_fg, home, difference_mins, rest_days, last_5_hit_rate, overall_under_rate, recent_t_statistic, line_t_statistic])
+                dataset.append([difference_fg, difference_efg, difference_mins, rest_days, last_5_hit_rate, overall_under_rate, recent_t_statistic, line_t_statistic])
         except:
             if today:
                 dataset.append([0 in range(num_features)])

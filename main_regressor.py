@@ -37,9 +37,8 @@ import pandas as pd
 import xgboost as xgb
 import sys
 from get_odds import get_odds_today
-from create_dataset_from_odds import calculate_features
-from wnba_dataset import calculate_wnba_features
-from nba_api.live.nba.endpoints import scoreboard
+from nba_reg import calculate_features
+from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
 import os
 import warnings
@@ -53,12 +52,12 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 def get_best_model(league):
     new_file = ""   
     best_accuracy = 0.0
-    for model_name in os.listdir(f'models/{league}'):
+    for model_name in os.listdir(f'models/regression/{league}/'):
         model_accuracy = float(model_name.split("%")[0].split("_")[1])
         if model_accuracy > best_accuracy:
             new_file = model_name
             best_accuracy = model_accuracy
-    return f'models/{league}/' + new_file
+    return f'models/regression/{league}/' + new_file
 
 ou_model_name = get_best_model(league)
 print(ou_model_name)
@@ -80,38 +79,32 @@ if odds_today.empty:
     sys.exit(f"No {league} games for today")
 
 print(odds_today)
-
-# Home teams -- not relevant rn so it doens't really work
-home_teams = []
-away_teams = []
-try:
-    games = scoreboard.ScoreBoard()
-    d = games.get_dict()
-
-    for game in d["scoreboard"]["games"]:
-        home_teams.append(game["homeTeam"]["teamTricode"])
-        away_teams.append(game["awayTeam"]["teamTricode"])
-except:
-    sys.exit("Failed to get home and away teams")
-
-print("Home teams: ", home_teams)
-print("Away teams; ", away_teams)
-data = calculate_features(odds_today, True, home_teams, away_teams) if league == "nba" else calculate_wnba_features(odds_today, True, home_teams, away_teams)
+data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, [], [])
 print(data)
 
 # Get XG Boost model's predictions
 model = xgb.Booster()
 model.load_model(ou_model_name) 
 
-predictions = model.predict(xgb.DMatrix(data))
-print(predictions) 
+predictions = model.predict(xgb.DMatrix(data, missing=-np.inf))
+
+y_lower = predictions[:, 0]  # alpha=0.476
+y_upper = predictions[:, 1]  # alpha=0.524
+
+odds_today["Lower"] = y_lower
+odds_today["Upper"] = y_upper
+
+print(odds_today)
+
+
+"""
 
 y = []
 ev = []
 wagers = []
 
 for i, z in enumerate(predictions):
-    choice = round(z)
+    choice = i <= 
     kelly_fraction = calculate_kelly_criterion(odds_today.iloc[i]["Over"], z) if choice == 1 else calculate_kelly_criterion(odds_today.iloc[i]["Under"], 1 - z)
     expected_value = calculate_ev(odds_today.iloc[i]["Over"], z) if choice == 1 else calculate_ev(odds_today.iloc[i]["Under"], 1 - z)
     y.append(choice)
@@ -123,3 +116,4 @@ odds_today["EV"] = ev
 odds_today["Wager Fraction"] = wagers
 
 print(odds_today)
+"""
