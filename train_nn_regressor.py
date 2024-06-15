@@ -9,11 +9,7 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 
-"""
-
-https://github.com/slavafive/ML-medium/blob/master/quantile_regression.ipynb
-
-"""
+# https://towardsdatascience.com/deep-quantile-regression-c85481548b5a
 
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)

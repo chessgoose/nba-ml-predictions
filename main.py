@@ -2,18 +2,15 @@
 """
 TODO: 
 
-- Correlation matrix between each component
-    - FGM and points might be stronger than what we have currently
+- Implement pinball loss
+- Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
 
 - SQLite to store all 2022-23 data 
-- Load in and train XGBoost quantile regression
-
-
 - Test correlation between EV and predictive accuracy
+
 - Early stopping for NN training
 - Combine create_dataset_from_odds and wnba_dataset
 
-- Exploratory data analysis - PCA?
 
 - New features
   - Opponent pace for WNBA (and NBA)
@@ -28,6 +25,8 @@ TODO:
 - include other odds for points
 
 - Try fit transform on overall instead of calculting t-statistic
+
+- PCA ? 
 
 - Long term
     - SQL Database
@@ -46,7 +45,7 @@ from utils.odds import calculate_kelly_criterion
 import os
 import warnings
 
-league = "wnba"
+league = "nba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # from colorama import Fore, Style, init, deinit

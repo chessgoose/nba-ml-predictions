@@ -9,7 +9,7 @@ from tqdm import tqdm
 from dataloading import load_data
 import warnings
 
-league = "wnba"
+league = "nba"
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 

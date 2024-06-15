@@ -100,7 +100,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days"]
+    headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Recent T"]
     num_features = len(headers)
     
     if not today:
@@ -127,6 +127,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
             fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
             difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
+
             #difference_fg = (rolling_avg_fg_pct - sample_mean_fg_pct) 
 
             #print("Average FG PCT: ", sample_mean_fg_pct)
@@ -149,6 +150,10 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             # Overall under rate and variance
             past_games = gamelog.loc[row_index + 1 :, "PTS"][:10]
             last_10_median = np.median(past_games)
+
+            last_5_points = gamelog.loc[row_index + 1 : row_index + 5, "PTS"]
+            games_list = last_5_points.tolist()
+            recent_t_statistic = calculate_t_statistic(games_list, np.mean(games_list), past_games.mean())
             
             # Calculate rest days since the last games
             rest_days = 0
@@ -166,9 +171,9 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
                 #headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Points", "Line", "OU Result"]
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
                 # headers = ["FG PCT", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR"] 
-                dataset.append([last_10_median, difference_fg, difference_mins, rest_days, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, difference_fg, difference_mins, rest_days, recent_t_statistic, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
-                dataset.append([last_10_median, difference_fg, difference_mins, rest_days])
+                dataset.append([last_10_median, difference_fg, difference_mins, rest_days, recent_t_statistic])
         except:
             if today:
                 dataset.append([0 in range(num_features)])

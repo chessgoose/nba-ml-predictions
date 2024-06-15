@@ -1,0 +1,6 @@
+features,best_params,best_score
+"('FG T', 'eFG T', 'UR', 'Recent T', 'Line T')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'binary:logistic', 'subsample': 0.8}",0.6859389454209065
+"('FG T', 'UR', 'Line T')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'binary:logistic', 'subsample': 0.8}",0.6777058279370952
+"('FG T', 'eFG T', 'UR', 'Recent T')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'binary:logistic', 'subsample': 0.8}",0.6772432932469935
+"('FG T', 'eFG T', 'UR', 'Line T')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'binary:logistic', 'subsample': 0.8}",0.6729879740980574
+"('FG T', 'eFG T', 'Rest Days', 'L5UR', 'UR', 'Recent T', 'Line T')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'binary:logistic', 'subsample': 0.8}",0.672895467160037

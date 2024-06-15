@@ -2,9 +2,12 @@
 """
 TODO: 
 
+- WNBA Quantile Regression with NN
+# https://towardsdatascience.com/deep-quantile-regression-c85481548b5a
+
+
 
 - SQLite to store all 2022-23 data 
-- Load in and train XGBoost quantile regression
 
 
 - Test correlation between EV and predictive accuracy
@@ -81,6 +84,7 @@ if odds_today.empty:
 print(odds_today)
 data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, [], [])
 print(data)
+data.drop(["Minutes Diff"], axis=1, inplace=True)
 
 # Get XG Boost model's predictions
 model = xgb.Booster()
@@ -96,6 +100,7 @@ odds_today["Upper"] = y_upper
 
 print(odds_today)
 
+# Modify so that we can see the difference between the average and the
 
 """
 

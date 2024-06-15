@@ -2,8 +2,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-"""
-data = pd.read_csv('data/wnba_train_regression.csv')
+
+data = pd.read_csv('data/wnba_train_over_under_data.csv')
 print(data.head())
 OU = data['OU Result']
 data.drop(['OU Result'], axis=1, inplace=True)
@@ -11,6 +11,7 @@ print(OU[:20])
 print(data.describe())
 class_counts = OU.value_counts()
 print(class_counts)
+
 """
 
 # Load the CSV file into a DataFrame
@@ -48,3 +49,4 @@ plt.show()
 # Feature Importance
 # Correlation with target
 print(df.corr()['OU Result'].sort_values(ascending=False))
+"""

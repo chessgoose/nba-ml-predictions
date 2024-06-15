@@ -53,6 +53,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
     # Print the player ID (optional)
     print(player_id)
 
+    Sys.sleep(0.5)
     # Get the player's game log statistics for the most recent WNBA season
     stats <- wehoop::wnba_playergamelog(player_id = player_id, season = wehoop::most_recent_wnba_season())
 
@@ -127,11 +128,10 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
             #difference_fg = (rolling_avg_fg_pct - sample_mean_fg_pct) 
 
-
-            sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGA"].mean()
+            sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "MIN"].mean()
             # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
-            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
-            difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
+            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "MIN"].tolist()
+            difference_mins = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
 
             #print("Average FG PCT: ", sample_mean_fg_pct)
 

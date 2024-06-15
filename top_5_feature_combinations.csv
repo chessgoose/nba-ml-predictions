@@ -1,0 +1,6 @@
+features,best_params,best_score
+"('L10 Median', 'FG T', 'Rest Days')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-4.940463459240902
+"('L10 Median', 'Minutes Diff', 'Rest Days')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.071002020260293
+"('L10 Median', 'Rest Days')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.131687261337458
+"('L10 Median',)","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.135095457618815
+"('L10 Median', 'FG T')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 1}",-5.173658111272329
