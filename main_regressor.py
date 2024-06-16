@@ -1,39 +1,4 @@
 
-"""
-TODO: 
-
-- WNBA Quantile Regression with NN
-# https://towardsdatascience.com/deep-quantile-regression-c85481548b5a
-
-
-
-- SQLite to store all 2022-23 data 
-
-
-- Test correlation between EV and predictive accuracy
-- Early stopping for NN training
-- Combine create_dataset_from_odds and wnba_dataset
-
-- Exploratory data analysis - PCA?
-
-- New features
-  - Opponent pace for WNBA (and NBA)
-  - Opponent strength (apparently doesnt matter either)
-  - Conditional on the game line LOL -- what was the ulimate point differential between the two teams. You can use the Vegas game line as a ground truth game line when making predictions
-  
-- New approach -- unified SARIMAX model using player-specific exogenous variables... 
-   - Regressive based approach that is independent of the line might be more effective 
-
-- Clean up and comment code
-    - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
-- include other odds for points
-
-- Try fit transform on overall instead of calculting t-statistic
-
-- Long term
-    - SQL Database
-
-"""
 
 import numpy as np
 import pandas as pd
@@ -84,7 +49,10 @@ if odds_today.empty:
 print(odds_today)
 data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, [], [])
 print(data)
-data.drop(["Minutes Diff"], axis=1, inplace=True)
+
+
+data.drop(["Minutes Diff", "FG T"], axis=1, inplace=True)
+
 
 # Get XG Boost model's predictions
 model = xgb.Booster()

@@ -53,10 +53,12 @@ def load_data(league="nba"):
 
 def load_regression_data(league):
     data = pd.read_csv(f'data/{league}_train_regression.csv')
+    points = data["Points"]
 
     # data['UR'] = scaler.fit_transform(data[['UR']])
     print(f'Number of rows: {len(data.index)}')
 
+    # data.drop(["Points", "Line", "OU Result"], axis=1, inplace=True)
     data = data.astype(float)
 
     return data

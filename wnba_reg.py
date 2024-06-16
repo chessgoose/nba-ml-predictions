@@ -135,14 +135,12 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             # TODO: calculate number of miles needed to travel from point a to point b if the previous game was further
 
             # TODO: calculate team pace 
-            # https://www.nba.com/stats/teams/advanced?dir=-1&sort=PACE&SeasonType=Regular+Season
+            # https://wehoop.sportsdataverse.org/reference/load_wnba_team_box.html
+            
 
-            # weekly_mean_points = gamelog["PTS"].rolling(3).mean()
-            #sample_mean_mins = gamelog.loc[row_index + 1 :, "MIN"].mean()
-            # how many minutes -- maybe make 4 games to reduce variance
-            # Rolling average of the past 2 games minutes -- has this player been playing more minutes recently? 
-            # rolling_avg_mins = gamelog.loc[row_index + 1 : row_index + 4, "MIN"].mean()  
-            # difference_mins = rolling_avg_mins - sample_mean_mins
+
+
+            
             last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "MIN"]
             past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
             difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())

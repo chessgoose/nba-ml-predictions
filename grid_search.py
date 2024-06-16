@@ -4,7 +4,7 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_data
+from dataloading import load_data, load_regression_data
 from sklearn.model_selection import GridSearchCV
 import warnings
 from itertools import combinations
@@ -12,7 +12,7 @@ from itertools import combinations
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Define the hyperparameter grid
-x_train, y_train = load_data("wnba")
+x_train, y_train = load_regression_data("wnba")
 #x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.1)
 
 print(x_train)
@@ -28,7 +28,7 @@ param_grid = {
 """
 
 param_grid = {
-    'max_depth': [3, 5],
+    'max_depth': [3, 4, 5],
     'learning_rate': [0.05],
     'subsample': [0.8, 1],
     'objective': ['reg:quantileerror'],

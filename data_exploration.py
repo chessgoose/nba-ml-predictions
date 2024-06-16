@@ -2,8 +2,11 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.metrics import mean_absolute_error
 
-data = pd.read_csv('data/wnba_train_over_under_data.csv')
+
+#data = pd.read_csv('data/wnba_train_over_under_data.csv')
+data = pd.read_csv('data/wnba_train_regression.csv')
 print(data.head())
 OU = data['OU Result']
 data.drop(['OU Result'], axis=1, inplace=True)
@@ -11,6 +14,9 @@ print(OU[:20])
 print(data.describe())
 class_counts = OU.value_counts()
 print(class_counts)
+
+print(mean_absolute_error(data['Points'], data['Line']))
+
 
 """
 

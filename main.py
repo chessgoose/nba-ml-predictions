@@ -13,10 +13,12 @@ TODO:
 
 
 - New features
-  - Opponent pace for WNBA (and NBA)
-  - Opponent strength (apparently doesnt matter either)
-  - Conditional on the game line LOL -- what was the ulimate point differential between the two teams. You can use the Vegas game line as a ground truth game line when making predictions
-  
+ - Opponent pace for WNBA (and NBA) -- apparently this doesn't matter
+    - Difference in my team vs opponent pace 
+    - Difference in home team vs opponent PPG 
+
+- Conditional on the game line LOL -- what was the ulimate point differential between the two teams. You can use the Vegas game line as a ground truth game line when making predictions
+
 - New approach -- unified SARIMAX model using player-specific exogenous variables... 
    - Regressive based approach that is independent of the line might be more effective 
 
