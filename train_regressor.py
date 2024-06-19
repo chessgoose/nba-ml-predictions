@@ -27,7 +27,7 @@ OU = data['OU Result']
 points = data['Points']
 print(data.head())
 
-data.drop(["Minutes Diff", "FG T"], axis=1, inplace=True)
+data.drop(["Minutes Diff", "FG T", "Rest Days"], axis=1, inplace=True)
 data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
 print(data.head())
 

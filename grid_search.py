@@ -12,9 +12,10 @@ from itertools import combinations
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Define the hyperparameter grid
-x_train, y_train = load_regression_data("wnba")
+x_train = load_regression_data("wnba")
+y_train = x_train["Points"]
+x_train.drop(["Points", "Line", "OU Result"], axis=1, inplace=True)
 #x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.1)
-
 print(x_train)
 
 # Define the hyperparameter grid

@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time
 
 # SQLite Backend
 
@@ -71,6 +72,48 @@ def get_odds_today(league="nba"):
     new_rows = pd.DataFrame(data, columns=headers)
     return new_rows
 
+
+def get_matchups():
+    today_date = datetime.today()
+    # Format the date to "MM/DD/YY"
+    formatted_date = today_date.strftime('%m/%d/%y')
+
+    url = f'https://stats.wnba.com/scores/{formatted_date}'
+
+    chrome_options = webdriver.ChromeOptions()
+    # chrome_options.add_argument("--headless")
+    # chrome_options.add_argument("--window-size=1920,1080")  # Run in headless mode (without a visible browser window)
+    driver = webdriver.Chrome(options=chrome_options)
+
+    try:
+        # Open the WNBA scores page
+        driver.get(url)
+        
+        time.sleep(5)
+
+        # wait = WebDriverWait(driver, 10)  # Increase the wait time as needed
+        #matchups_section = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'scores-game__inner'))) 
+        matchups_section = driver.find_elements(By.CLASS_NAME, 'scores-game__inner')  # Adjust class name if needed
+        
+        assert len(matchups_section) != 0
+
+        # Extract team abbreviations from the matchups section
+        matchups = []
+        for game in matchups_section:
+            teams = game.find_elements(By.CLASS_NAME, 'scores-game__team-abbr')  # Adjust class name if needed
+            if len(teams) == 2:
+                team1 = teams[0].text.strip()
+                team2 = teams[1].text.strip()
+                matchups.append((team1, team2))
+    except:
+        return []
+
+    finally:
+        # Close the WebDriver
+        driver.quit()
+
+    return matchups
+
 if __name__ == "__main__":
     # Find both odds for NBA and WNBA
     file_name = 'data/wnba_odds.csv'
@@ -80,7 +123,7 @@ if __name__ == "__main__":
     if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
-
+    """
     file_name = 'data/new_odds_two.csv'
     df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
@@ -88,3 +131,4 @@ if __name__ == "__main__":
     if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
+    """

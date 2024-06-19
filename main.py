@@ -1,17 +1,11 @@
 
 """
 TODO: 
-
 - Implement pinball loss
 - Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
-
-- SQLite to store all 2022-23 data 
 - Test correlation between EV and predictive accuracy
 
-- Early stopping for NN training
 - Combine create_dataset_from_odds and wnba_dataset
-
-
 - New features
  - Opponent pace for WNBA (and NBA) -- apparently this doesn't matter
     - Difference in my team vs opponent pace 

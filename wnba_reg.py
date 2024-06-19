@@ -7,6 +7,7 @@ from datetime import datetime
 from dataloading import drop_unused_statistics
 import rpy2
 import rpy2.robjects as ro
+import math
 
 def calculate_t_statistic(data, value, population_mean):
     # Calculate the sample standard deviation
@@ -23,8 +24,17 @@ import rpy2.robjects as robjects
 from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
 
+convert_team_abbreviations = {
+    'CON': 'CONN',
+    'NYL': 'NY',
+    'LAS': 'LA',
+    'LVA': 'LV',
+    'PHO': 'PHX',
+    'WAS': 'WSH'
+}
+
 #Calculate features given our odds
-def calculate_wnba_features(df, today, home_teams, away_teams):
+def calculate_wnba_features(df, today, matchups):
     superstars = df['Player']
     game_records_by_player = {}
     player_count = 0
@@ -35,7 +45,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
     # Import the required R package
     wehoop = importr('wehoop')
 
-    # Define the R function in Python
+    # Define the R code in Python
     r_code = """
     player_index <- wehoop::wnba_playerindex(season=wehoop::most_recent_wnba_season())
     thing <- player_index$PlayerIndex
@@ -60,6 +70,25 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
 
     return(stats$PlayerGameLog)
     }
+
+    library(dplyr)
+
+    box <- wehoop::load_wnba_team_box()
+
+    calculate_avg_points_before_date <- function(team_data, team, date_threshold) {
+    date_threshold <- as.Date(date_threshold)
+
+    avg_points_all <- team_data %>%
+        summarise(avg_points = mean(team_score, na.rm = TRUE)) %>%
+        pull(avg_points)
+
+    avg_points_after <- team_data %>%
+        filter(team_abbreviation == team, game_date < date_threshold) %>%
+        summarise(avg_points = mean(team_score, na.rm = TRUE)) %>%
+        pull(avg_points)
+
+    return (avg_points_after - avg_points_all)
+    }
     """
 
     # Execute the R code to define the function and variables
@@ -67,6 +96,13 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
 
     # Access the player index dataframe
     player_index = robjects.globalenv['thing']
+    team_data = robjects.globalenv['box']
+
+    # Define the Python function to call the R function
+    def calculate_avg_points_before_date(team, date_threshold):
+        r_get_player_stats = robjects.globalenv['calculate_avg_points_before_date']
+        stats = r_get_player_stats(team_data, team, date_threshold)
+        return stats[0]
 
     # Define the Python function to call the R function
     def get_player_stats(first_name, last_name):
@@ -100,7 +136,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Recent T"]
+    headers = ["L10 Median", "Relative Strength", "Minutes Diff", "Rest Days", "Recent T", "Opponent PPG"]
     num_features = len(headers)
     
     if not today:
@@ -120,6 +156,27 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
                 row_index = gamelog.index[gamelog["GAME_DATE"] == row["Date"]].tolist()[0]
             else:
                 row_index = -1
+            
+            opponent_ppg = -np.nan
+            relative_strength = -np.nan
+            if not today:
+                team = gamelog.loc[row_index, "MATCHUP"].split(" ")[2]
+                team = team if team not in convert_team_abbreviations else convert_team_abbreviations[team]
+                my_team = gamelog.loc[row_index, "MATCHUP"].split(" ")[0]
+                my_team = my_team if team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
+                game_date = gamelog.loc[row_index, "GAME_DATE"].strftime('%Y-%m-%d')
+                opponent_ppg = calculate_avg_points_before_date(team, game_date)
+                relative_strength = calculate_avg_points_before_date(my_team, gamed_date) - opponent_ppg
+            else:
+                # Find my team in the list of matchups
+                my_team = gamelog.loc[0, "MATCHUP"].split(" ")[0]
+                my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[team]
+                other_team = ""
+                for team1, team2 in matchups:
+                    if team1 == my_team:
+                        other_team = team2
+                    else:
+                        other_team = team2
 
             # print("Row index:", row_index)
             # FG_pct
@@ -128,19 +185,6 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
             difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
 
-            #difference_fg = (rolling_avg_fg_pct - sample_mean_fg_pct) 
-
-            #print("Average FG PCT: ", sample_mean_fg_pct)
-
-            # TODO: calculate number of miles needed to travel from point a to point b if the previous game was further
-
-            # TODO: calculate team pace 
-            # https://wehoop.sportsdataverse.org/reference/load_wnba_team_box.html
-            
-
-
-
-            
             last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "MIN"]
             past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
             difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
@@ -169,9 +213,9 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
                 #headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Points", "Line", "OU Result"]
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
                 # headers = ["FG PCT", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR"] 
-                dataset.append([last_10_median, difference_fg, difference_mins, rest_days, recent_t_statistic, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, relative_strength, difference_mins, rest_days, recent_t_statistic, opponent_ppg, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
-                dataset.append([last_10_median, difference_fg, difference_mins, rest_days, recent_t_statistic])
+                dataset.append([last_10_median, relative_strength, difference_mins, rest_days, recent_t_statistic, opponent_ppg])
         except:
             if today:
                 dataset.append([0 in range(num_features)])
@@ -179,14 +223,15 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             # don't add a row
             #dataset.append([0, 0, 0, 0])
 
+    print(dataset)
     new_df = pd.DataFrame(dataset, columns=headers)
 
     new_df['FG T'] = pd.to_numeric(new_df['FG T'], errors='coerce')
-    new_df = new_df.fillna(0)
+    # new_df = new_df.fillna(0)
     new_df = new_df.astype(float)
     return new_df
 
 if __name__ == "__main__":
     df = pd.read_csv('data/wnba_odds.csv')
-    new_df = calculate_wnba_features(df, False, [], [])
+    new_df = calculate_wnba_features(df, False, [])
     new_df.to_csv("data/wnba_train_regression.csv", index=False)

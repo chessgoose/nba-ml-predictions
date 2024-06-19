@@ -122,6 +122,7 @@ def calculate_wnba_features(df, today, home_teams, away_teams):
             else:
                 row_index = -1
 
+
             # print("Row index:", row_index)
             # FG_pct
             num_games = 5
