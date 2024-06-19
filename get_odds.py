@@ -17,11 +17,12 @@ def get_odds_today(league="nba"):
         url = "https://sportsbook.draftkings.com/leagues/basketball/wnba?category=player-points&subcategory=points"
         
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
+    # chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
     driver = webdriver.Chrome(options=chrome_options)
 
     # Open the URL in the browser
     driver.get(url)
+    driver.maximize_window()
 
     # Extract data using Selenium locators
 
@@ -76,9 +77,11 @@ def get_odds_today(league="nba"):
 def get_matchups():
     today_date = datetime.today()
     # Format the date to "MM/DD/YY"
-    formatted_date = today_date.strftime('%m/%d/%y')
+    formatted_date = today_date.strftime('%m/%d/%Y')
+    print(formatted_date)
 
     url = f'https://stats.wnba.com/scores/{formatted_date}'
+    print(url)
 
     chrome_options = webdriver.ChromeOptions()
     # chrome_options.add_argument("--headless")
@@ -116,6 +119,8 @@ def get_matchups():
 
 if __name__ == "__main__":
     # Find both odds for NBA and WNBA
+    print(get_matchups())
+    """
     file_name = 'data/wnba_odds.csv'
     df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
@@ -123,6 +128,7 @@ if __name__ == "__main__":
     if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
+    """
     """
     file_name = 'data/new_odds_two.csv'
     df = pd.read_csv(file_name, index_col=False)

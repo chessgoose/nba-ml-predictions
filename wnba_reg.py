@@ -163,20 +163,30 @@ def calculate_wnba_features(df, today, matchups):
                 team = gamelog.loc[row_index, "MATCHUP"].split(" ")[2]
                 team = team if team not in convert_team_abbreviations else convert_team_abbreviations[team]
                 my_team = gamelog.loc[row_index, "MATCHUP"].split(" ")[0]
-                my_team = my_team if team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
+                my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
                 game_date = gamelog.loc[row_index, "GAME_DATE"].strftime('%Y-%m-%d')
                 opponent_ppg = calculate_avg_points_before_date(team, game_date)
-                relative_strength = calculate_avg_points_before_date(my_team, gamed_date) - opponent_ppg
+                my_ppg = calculate_avg_points_before_date(my_team, game_date) 
+                relative_strength = my_ppg - opponent_ppg
             else:
                 # Find my team in the list of matchups
                 my_team = gamelog.loc[0, "MATCHUP"].split(" ")[0]
-                my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[team]
-                other_team = ""
+                my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
+                print(my_team)
+                team = ""
+                print(matchups)
                 for team1, team2 in matchups:
                     if team1 == my_team:
-                        other_team = team2
+                        team = team2 if team2 not in convert_team_abbreviations else convert_team_abbreviations[team2]
                     else:
-                        other_team = team2
+                        team = team1 if team1 not in convert_team_abbreviations else convert_team_abbreviations[team1]
+                print(team)
+                game_date = datetime.today().strftime('%Y-%m-%d')
+                print(game_date)
+                opponent_ppg = calculate_avg_points_before_date(team, game_date)
+                my_ppg = calculate_avg_points_before_date(my_team, game_date) 
+                relative_strength = my_ppg - opponent_ppg
+                print(relative_strength)
 
             # print("Row index:", row_index)
             # FG_pct
@@ -223,10 +233,9 @@ def calculate_wnba_features(df, today, matchups):
             # don't add a row
             #dataset.append([0, 0, 0, 0])
 
-    print(dataset)
     new_df = pd.DataFrame(dataset, columns=headers)
 
-    new_df['FG T'] = pd.to_numeric(new_df['FG T'], errors='coerce')
+    # new_df['FG T'] = pd.to_numeric(new_df['FG T'], errors='coerce')
     # new_df = new_df.fillna(0)
     new_df = new_df.astype(float)
     return new_df

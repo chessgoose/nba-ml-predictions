@@ -1,6 +1,6 @@
 features,best_params,best_score
-"('L10 Median', 'Recent T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-4.986838125098835
-"('L10 Median', 'Rest Days', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 1}",-5.0330854852168585
-"('L10 Median', 'FG T', 'Rest Days', 'Recent T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.081453640863492
-"('L10 Median', 'Rest Days', 'Recent T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 1}",-5.08653295733712
-"('L10 Median', 'FG T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.114525806625168
+"('L10 Median', 'Relative Strength', 'Rest Days', 'Recent T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-4.735703945187781
+"('L10 Median', 'Relative Strength', 'Rest Days', 'Recent T')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 1}",-4.759472782830618
+"('L10 Median', 'Rest Days', 'Recent T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 1}",-4.760558766387904
+"('L10 Median', 'Relative Strength', 'Recent T', 'Opponent PPG')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-4.762770544193698
+"('L10 Median', 'Relative Strength', 'Recent T')","{'learning_rate': 0.05, 'max_depth': 5, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-4.837426362826348

@@ -18,7 +18,7 @@ https://github.com/slavafive/ML-medium/blob/master/quantile_regression.ipynb
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-random_seed = 1234
+random_seed = 42
 np.random.seed(random_seed)
 
 data = load_regression_data(league)
@@ -27,7 +27,7 @@ OU = data['OU Result']
 points = data['Points']
 print(data.head())
 
-data.drop(["Minutes Diff", "FG T", "Rest Days"], axis=1, inplace=True)
+data.drop(["Minutes Diff", "Opponent PPG"], axis=1, inplace=True)
 data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
 print(data.head())
 
@@ -70,7 +70,9 @@ for x in tqdm(range(15)):
     y_lower = predictions[:, 0]  # alpha=0.476
     y_upper = predictions[:, 1]  # alpha=0.524
 
-    valid_indices = np.where((z_test < y_lower) | (z_test > y_upper))[0]
+    
+    padding = 0.5
+    valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
 
     if len(valid_indices) == 0:
         print("No valid predictions outside the range [predictions_low, predictions_high]")
@@ -90,7 +92,7 @@ for x in tqdm(range(15)):
     print(f"Accuracy: {acc}% on {len(predicted_ou_results)} results")
     acc_results.append(acc)
 
-    # only save results if they are the best so far
+    # only save results if they are the best so far (in terms of MAE LOL)
     if acc == max(acc_results):
         feature_important = model.get_score(importance_type='weight')
         keys = list(feature_important.keys())

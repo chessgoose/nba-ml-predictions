@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 import sys
-from get_odds import get_odds_today
+from get_odds import get_odds_today, get_matchups
 from nba_reg import calculate_features
 from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
@@ -48,47 +48,11 @@ if odds_today.empty:
 
 print(odds_today)
 
-
-import requests
-from bs4 import BeautifulSoup
-
-def get_matchups():
-    # Scrape WNBA website for today's matchups (https://stats.wnba.com/scores/06/19/2024)
-    # URL for the WNBA website with today's matchups
-    url = 'https://stats.wnba.com/scores/06/19/2024'
-    
-    # Send a GET request to the webpage
-    response = requests.get(url)
-    response.raise_for_status()  # Raise an exception for HTTP errors
-    
-    # Parse the webpage content
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
-    # Find the relevant section containing the matchups
-    matchups_section = soup.find_all('div', class_='gameSummary')  # This class might need to be adjusted based on the actual HTML structure
-    
-    # Extract team abbreviations from the matchups section
-    matchups = []
-    for game in matchups_section:
-        teams = game.find_all('div', class_='teamAbbreviation')  # Adjust class as necessary
-        if len(teams) == 2:
-            team1 = teams[0].text.strip()
-            team2 = teams[1].text.strip()
-            matchups.append((team1, team2))
-    
-    return matchups
-
 matchups = get_matchups()
-print(matchups)
-
-sys.exit("Congrats you bum")
-
-data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, [])
+data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, matchups)
 print(data)
 
-
-data.drop(["Minutes Diff", "FG T", "Rest Days"], axis=1, inplace=True)
-
+data.drop(["Minutes Diff", "Opponent PPG"], axis=1, inplace=True)
 
 # Get XG Boost model's predictions
 model = xgb.Booster()

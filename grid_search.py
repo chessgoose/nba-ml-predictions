@@ -29,9 +29,9 @@ param_grid = {
 """
 
 param_grid = {
-    'max_depth': [3, 4, 5],
+    'max_depth': [3, 5],
     'learning_rate': [0.05],
-    'subsample': [0.8, 1],
+    'subsample': [0.8, 1.0],
     'objective': ['reg:quantileerror'],
     "quantile_alpha": [0.5]
 }
