@@ -5,6 +5,7 @@ import pandas as pd
 import xgboost as xgb
 import sys
 from get_odds import get_odds_today, get_matchups
+from dataloading import drop_regression_stats
 from nba_reg import calculate_features
 from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
@@ -49,10 +50,10 @@ if odds_today.empty:
 print(odds_today)
 
 matchups = get_matchups()
+print(matchups)
 data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, matchups)
 print(data)
-
-data.drop(["Minutes Diff", "Opponent PPG"], axis=1, inplace=True)
+drop_regression_stats(data)
 
 # Get XG Boost model's predictions
 model = xgb.Booster()

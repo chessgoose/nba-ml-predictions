@@ -28,7 +28,6 @@ data.drop(["OU Result", "Line", "Points", "FG T", "Minutes Diff"], axis=1, inpla
 print(data.head())
 
 acc_results = []
-
 x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=0.2, shuffle=True, random_state=random_seed)
 
 # Initialize and train the linear regression model

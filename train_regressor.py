@@ -4,7 +4,7 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_regression_data
+from dataloading import load_regression_data, drop_regression_stats
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +18,7 @@ https://github.com/slavafive/ML-medium/blob/master/quantile_regression.ipynb
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-random_seed = 42
+random_seed = 69
 np.random.seed(random_seed)
 
 data = load_regression_data(league)
@@ -27,14 +27,14 @@ OU = data['OU Result']
 points = data['Points']
 print(data.head())
 
-data.drop(["Minutes Diff", "Opponent PPG"], axis=1, inplace=True)
+drop_regression_stats(data)
 data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
 print(data.head())
 
 quantiles = np.array([0.476, 0.524])
 
 acc_results = []
-for x in tqdm(range(15)):
+for x in tqdm(range(20)):
     x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=.2, shuffle=True)
 
     train = xgb.DMatrix(x_train, label=y_train, missing=-np.inf)
@@ -70,7 +70,6 @@ for x in tqdm(range(15)):
     y_lower = predictions[:, 0]  # alpha=0.476
     y_upper = predictions[:, 1]  # alpha=0.524
 
-    
     padding = 0.5
     valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
 

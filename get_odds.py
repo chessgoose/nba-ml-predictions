@@ -119,8 +119,6 @@ def get_matchups():
 
 if __name__ == "__main__":
     # Find both odds for NBA and WNBA
-    print(get_matchups())
-    """
     file_name = 'data/wnba_odds.csv'
     df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
@@ -128,7 +126,7 @@ if __name__ == "__main__":
     if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
-    """
+        
     """
     file_name = 'data/new_odds_two.csv'
     df = pd.read_csv(file_name, index_col=False)

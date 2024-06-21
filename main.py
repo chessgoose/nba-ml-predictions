@@ -1,32 +1,28 @@
 
 """
 TODO: 
-- Implement pinball loss
-- Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
-- Test correlation between EV and predictive accuracy
-
+- Fix neural network not training issues... 
+- Design frontend interface
+- Revise scraping methodology so that it's more consistent (espeically scraping odds from draftkings)
 - Combine create_dataset_from_odds and wnba_dataset
 - New features
- - Opponent pace for WNBA (and NBA) -- apparently this doesn't matter
-    - Difference in my team vs opponent pace 
-    - Difference in home team vs opponent PPG 
-
-- Conditional on the game line LOL -- what was the ulimate point differential between the two teams. You can use the Vegas game line as a ground truth game line when making predictions
-
-- New approach -- unified SARIMAX model using player-specific exogenous variables... 
-   - Regressive based approach that is independent of the line might be more effective 
+    - Travel distance between
+    - Opponent pace for WNBA (and NBA) (difference in my team vs opponent pace too)
+    - Conditional on the game line LOL -- what was the ulimate point differential between the two teams. You can use the Vegas game line as a ground truth game line when making predictions
 
 - Clean up and comment code
     - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
-- include other odds for points
+- Include other odds for points
 
 - Try fit transform on overall instead of calculting t-statistic
 
+- Long term - SQL Databases
+
 - PCA ? 
-
-- Long term
-    - SQL Database
-
+- Implement pinball loss
+- Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
+- New approach -- unified SARIMAX model using player-specific exogenous variables... 
+   - Regressive based approach that is independent of the line might be more effective 
 """
 
 import numpy as np

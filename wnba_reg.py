@@ -57,7 +57,7 @@ def calculate_wnba_features(df, today, matchups):
 
     # Check if player ID is found
     if(length(player_id) == 0) {
-        stop("Player not found in the dataframe")
+        stop(paste("Player", first_name, last_name, "not found in the dataframe"))
     }
 
     # Print the player ID (optional)
@@ -146,7 +146,7 @@ def calculate_wnba_features(df, today, matchups):
 
     for index, row in df.iterrows():
         try:
-            gamelog = game_records_by_player[row["Player"]]
+            gamelog = game_records_by_player[row["Player"].lstrip()]
             # print(gamelog)
 
             gamelog['GAME_DATE'] = pd.to_datetime(gamelog['GAME_DATE'])
@@ -171,20 +171,22 @@ def calculate_wnba_features(df, today, matchups):
             else:
                 # Find my team in the list of matchups
                 my_team = gamelog.loc[0, "MATCHUP"].split(" ")[0]
-                my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
                 print(my_team)
                 team = ""
-                print(matchups)
+                #print(matchups)
                 for team1, team2 in matchups:
                     if team1 == my_team:
                         team = team2 if team2 not in convert_team_abbreviations else convert_team_abbreviations[team2]
-                    else:
+                    elif team2 == my_team:
                         team = team1 if team1 not in convert_team_abbreviations else convert_team_abbreviations[team1]
                 print(team)
+                my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
                 game_date = datetime.today().strftime('%Y-%m-%d')
-                print(game_date)
+                #print(game_date)
                 opponent_ppg = calculate_avg_points_before_date(team, game_date)
+                print(opponent_ppg)
                 my_ppg = calculate_avg_points_before_date(my_team, game_date) 
+                print(my_ppg)
                 relative_strength = my_ppg - opponent_ppg
                 print(relative_strength)
 

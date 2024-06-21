@@ -10,7 +10,7 @@ import torch.optim as optim
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_regression_data
+from dataloading import load_regression_data, drop_regression_stats
 import warnings
 import matplotlib.pyplot as plt
 
@@ -28,7 +28,8 @@ OU = data['OU Result']
 points = data['Points']
 print(data.head())
 
-data.drop(["Minutes Diff", "FG T"], axis=1, inplace=True)
+drop_regression_stats(data)
+data.drop(["Relative Strength"], axis=1, inplace=True)
 data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
 print(data.head())
 
@@ -60,6 +61,7 @@ def quantile_loss(quantile, y_true, y_pred):
 # Convert data to PyTorch tensors
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 acc_results = []
 for x in tqdm(range(15)):
     x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=.2, shuffle=True)
@@ -70,12 +72,13 @@ for x in tqdm(range(15)):
     y_test = torch.tensor(y_test.values, dtype=torch.float32).unsqueeze(1).to(device)
     z_test = torch.tensor(z_test.values, dtype=torch.float32).unsqueeze(1).to(device)
 
-    model = QuantileRegressionNN(input_dim=x_train.shape[1], layer_dim=32).to(device)
+    model = QuantileRegressionNN(input_dim=x_train.shape[1], layer_dim=8).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     num_epochs = 1000
-    patience = 40
+    patience = 500
     best_loss = float('inf')
     epochs_no_improve = 0
+    best_model_wts = model.state_dict()
 
     for epoch in range(num_epochs):
         model.train()
@@ -104,7 +107,6 @@ for x in tqdm(range(15)):
 
     # Load best model weights
     model.load_state_dict(best_model_wts)
-
     model.eval()
     with torch.no_grad():
         predictions = model(x_test)
