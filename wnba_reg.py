@@ -190,13 +190,6 @@ def calculate_wnba_features(df, today, matchups):
                 relative_strength = my_ppg - opponent_ppg
                 print(relative_strength)
 
-            # print("Row index:", row_index)
-            # FG_pct
-            sample_mean_fg_pct = gamelog.loc[row_index + 1 :, "FGA"].mean()
-            # rolling_avg_fg_pct = gamelog.loc[row_index + 1 : row_index + 3, "FGA"].mean() 
-            fg_games_list = gamelog.loc[row_index + 1 : row_index + 5, "FGA"].tolist()
-            difference_fg = calculate_t_statistic(fg_games_list, np.mean(fg_games_list), sample_mean_fg_pct)
-
             last_5_minutes = gamelog.loc[row_index + 1 : row_index + 5, "MIN"]
             past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
             difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
