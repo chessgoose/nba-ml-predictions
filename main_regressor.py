@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -9,15 +7,14 @@ from dataloading import drop_regression_stats
 from nba_reg import calculate_features
 from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
+from train_nn_regressor import QuantileRegressor
 import os
 import warnings
+from colorama import Fore, Style, init, deinit
 
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-# from colorama import Fore, Style, init, deinit
-# from src.Utils.Dictionaries import team_index_current
-# from src.Utils.tools import get_json_data, to_data_frame, get_todays_games_json, create_todays_games
 def get_best_model(league):
     new_file = ""   
     best_accuracy = 0.0
@@ -30,17 +27,6 @@ def get_best_model(league):
 
 ou_model_name = get_best_model(league)
 print(ou_model_name)
-
-def calculate_ev(odds, probability):
-    # Assume $100 bet
-    # Calculate (Probability of Winning) x (Amount Won per Bet) – (Probability of Losing) x (Amount Lost per Bet)
-    amount_won = 0
-    if odds > 0:
-        amount_won = odds
-    else:
-        amount_won = 100 * 100 / abs(odds)
-    res = probability * amount_won - (1 - probability) * 100
-    return res
 
 # get odds
 odds_today = get_odds_today(league)
@@ -64,30 +50,28 @@ predictions = model.predict(xgb.DMatrix(data, missing=-np.inf))
 y_lower = predictions[:, 0]  # alpha=0.476
 y_upper = predictions[:, 1]  # alpha=0.524
 
-odds_today["Lower"] = y_lower
-odds_today["Upper"] = y_upper
+odds_today["Lower XGBoost"] = y_lower
+odds_today["Upper XGBoost"] = y_upper
 
-print(odds_today)
+# Initialize colorama
+init(autoreset=True)
 
-# Modify so that we can see the difference between the average and the
+def get_row_color(lower, upper, total):
+    if min(lower, upper) > total + 0.5:
+        return Fore.GREEN
+    elif max(lower, upper) < total - 0.5:
+        return Fore.RED
+    else:
+        return ''
 
-"""
+# Print each row with appropriate highlighting
+for index, row in odds_today.iterrows():
+    lower = row["Lower XGBoost"]
+    upper = row["Upper XGBoost"]
+    total = row["Line"]
+    color = get_row_color(lower, upper, total)
 
-y = []
-ev = []
-wagers = []
+    print(color + f"{row['Date']} - {row['Player']} - Line: {total} - Over: {row['Over']} - Under: {row['Under']} - Lower XGBoost: {lower:.2f} - Upper XGBoost: {upper:.2f}" + Style.RESET_ALL)
 
-for i, z in enumerate(predictions):
-    choice = i <= 
-    kelly_fraction = calculate_kelly_criterion(odds_today.iloc[i]["Over"], z) if choice == 1 else calculate_kelly_criterion(odds_today.iloc[i]["Under"], 1 - z)
-    expected_value = calculate_ev(odds_today.iloc[i]["Over"], z) if choice == 1 else calculate_ev(odds_today.iloc[i]["Under"], 1 - z)
-    y.append(choice)
-    ev.append(expected_value)
-    wagers.append(kelly_fraction)
-
-odds_today["Prediction"] = y
-odds_today["EV"] = ev
-odds_today["Wager Fraction"] = wagers
-
-print(odds_today)
-"""
+# Deinitialize colorama
+deinit()

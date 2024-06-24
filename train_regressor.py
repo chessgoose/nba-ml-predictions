@@ -18,7 +18,7 @@ https://github.com/slavafive/ML-medium/blob/master/quantile_regression.ipynb
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-random_seed = 69
+random_seed = 1234
 np.random.seed(random_seed)
 
 data = load_regression_data(league)

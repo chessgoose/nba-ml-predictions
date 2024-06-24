@@ -68,7 +68,7 @@ def train_model(model, criterion, optimizer, train_loader, val_loader, num_epoch
         if val_loss < best_loss:
             best_loss = val_loss
             epochs_no_improve = 0
-            torch.save(model.state_dict(), 'models/regression/wnba/NN.pth')
+            torch.save(model.state_dict(), 'nn_models/wnba/NN.pth')
         else:
             epochs_no_improve += 1
 
@@ -119,18 +119,18 @@ def main():
     quantiles = np.array([0.476, 0.524])
 
     acc_results = []
-    for _ in tqdm(range(20)):
+    for _ in tqdm(range(15)):
         train_loader, val_loader, y_test, z_test = load_data(data, points, lines)
 
         input_dim = data.shape[1]
         output_dim = len(quantiles)
         model = QuantileRegressor(input_dim, output_dim)
         criterion = QuantileLoss(torch.tensor(quantiles))
-        optimizer = optim.Adam(model.parameters(), lr=0.003)
+        optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
         train_model(model, criterion, optimizer, train_loader, val_loader)
 
-        model.load_state_dict(torch.load('models/regression/wnba/NN.pth'))
+        model.load_state_dict(torch.load('nn_models/wnba/NN.pth'))
         model.eval()
 
         all_preds = []

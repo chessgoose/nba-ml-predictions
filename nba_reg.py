@@ -85,9 +85,6 @@ def calculate_features(df, today, home_teams, away_teams):
 
             # TODO: calculate number of miles needed to travel from point a to point b if the previous game was further
 
-            # TODO: calculate team pace 
-            # https://www.nba.com/stats/teams/advanced?dir=-1&sort=PACE&SeasonType=Regular+Season
-
             # weekly_mean_points = gamelog["PTS"].rolling(3).mean()
             #sample_mean_mins = gamelog.loc[row_index + 1 :, "MIN"].mean()
             # how many minutes -- maybe make 4 games to reduce variance

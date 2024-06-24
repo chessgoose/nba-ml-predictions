@@ -47,6 +47,7 @@ def calculate_wnba_features(df, today, matchups):
 
     # Define the R code in Python
     r_code = """
+    
     player_index <- wehoop::wnba_playerindex(season=wehoop::most_recent_wnba_season())
     thing <- player_index$PlayerIndex
 
@@ -74,6 +75,8 @@ def calculate_wnba_features(df, today, matchups):
     library(dplyr)
 
     box <- wehoop::load_wnba_team_box()
+    box <- box %>%
+  mutate(pace = field_goals_attempted + 0.44 * free_throws_attempted - offensive_rebounds + turnovers)
 
     calculate_avg_points_before_date <- function(team_data, team, date_threshold) {
     date_threshold <- as.Date(date_threshold)
@@ -136,7 +139,7 @@ def calculate_wnba_features(df, today, matchups):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "Relative Strength", "Minutes Diff", "Rest Days", "Recent T", "Opponent PPG"]
+    headers = ["L10 Median", "Home", "Minutes Diff", "Rest Days", "Recent T", "Opponent PPG"]
     num_features = len(headers)
     
     if not today:
@@ -194,6 +197,10 @@ def calculate_wnba_features(df, today, matchups):
             past_minutes = gamelog.loc[row_index + 1 :, "MIN"]
             difference_mins = calculate_t_statistic(last_5_minutes, np.mean(last_5_minutes), past_minutes.mean())
 
+            home = 1
+            if not today:
+                home = 0 if "@" in gamelog.loc[row_index, "MATCHUP"] else 1
+
             # Overall under rate and variance
             past_games = gamelog.loc[row_index + 1 :, "PTS"][:10]
             last_10_median = np.median(past_games)
@@ -211,16 +218,16 @@ def calculate_wnba_features(df, today, matchups):
             print("Rest days: ", rest_days)
             
             # Skip that shit if for some reason we don't have valid shit (b/c then we can't really learn anything)
-            if not today and difference_fg == 0 and difference_mins == 0:
+            if not today and (difference_mins == 0 and recent_t_statistic == 0):
                 continue
 
             if not today:
                 #headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Points", "Line", "OU Result"]
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
                 # headers = ["FG PCT", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR"] 
-                dataset.append([last_10_median, relative_strength, difference_mins, rest_days, recent_t_statistic, opponent_ppg, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, home, difference_mins, rest_days, recent_t_statistic, opponent_ppg, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
-                dataset.append([last_10_median, relative_strength, difference_mins, rest_days, recent_t_statistic, opponent_ppg])
+                dataset.append([last_10_median, home, difference_mins, rest_days, recent_t_statistic, opponent_ppg])
         except:
             if today:
                 dataset.append([0 in range(num_features)])

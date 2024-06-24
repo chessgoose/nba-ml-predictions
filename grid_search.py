@@ -31,7 +31,7 @@ param_grid = {
 param_grid = {
     'max_depth': [3, 4, 5],
     'learning_rate': [0.05],
-    'subsample': [0.8, 0.9],
+    'subsample': [0.8],
     'objective': ['reg:quantileerror'],
     "quantile_alpha": [0.5]
 }
@@ -40,7 +40,7 @@ param_grid = {
 xgb_model = xgb.XGBRegressor()
 
 # Create the GridSearchCV object
-grid_search = GridSearchCV(xgb_model, param_grid, cv=5, scoring='neg_mean_absolute_error', verbose=0)
+grid_search = GridSearchCV(xgb_model, param_grid, cv=10, scoring='neg_mean_absolute_error', verbose=0)
 
 # Get all possible combinations of features
 feature_combinations = []
