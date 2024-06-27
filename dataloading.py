@@ -64,6 +64,4 @@ def load_regression_data(league):
     return data
 
 def drop_regression_stats(data):
-    data.drop(["Minutes Diff", "Home", "Rest Days"], axis=1, inplace=True)
-
-
+    data.drop(["Opponent PPG", "Home", "Recent T", "Rest Days"], axis=1, inplace=True)

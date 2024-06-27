@@ -4,6 +4,7 @@ import xgboost as xgb
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
+import scipy.stats as stats
 from tqdm import tqdm
 import warnings
 from dataloading import load_regression_data, drop_regression_stats
@@ -45,7 +46,7 @@ for x in tqdm(range(20)):
 
     train = xgb.DMatrix(x_train, label=y_train, missing=-np.inf)
     test = xgb.DMatrix(x_test, label=y_test, missing=-np.inf)
-    evals = [(train, 'train'), (test, 'eval')]
+    evals = [(train, 'train'), (test, 'test')]
 
     param = {
         'objective': 'reg:quantileerror',
@@ -54,6 +55,9 @@ for x in tqdm(range(20)):
         'eta': 0.05,
         'subsample': 0.8
     }
+
+    #  'interaction_constraints': [["L10 Median", "Minutes Diff"], ["L10 Median", "Rest Days"]]
+    # can set feature_weights too
 
     model = xgb.train(param, train, num_boost_round=1000, early_stopping_rounds=40, evals=evals, verbose_eval=0)
     
@@ -64,8 +68,15 @@ for x in tqdm(range(20)):
 
     coverages = calculate_coverage(predictions, y_test, quantiles)
     calibration_error = calculate_calibration_error(coverages, quantiles)
-    
+
     if calibration_error < best_calibration_error:
+        feature_important = model.get_score(importance_type='weight')
+        keys = list(feature_important.keys())
+        values = list(feature_important.values())
+
+        scores = pd.DataFrame(data=values, index=keys, columns=["score"]).sort_values(by = "score", ascending=False)
+        print(scores)
+
         print("Best iteration: ", model.best_iteration)
         best_calibration_error = calibration_error
         best_model = model
@@ -76,6 +87,23 @@ for x in tqdm(range(20)):
         # Compare the predictions to the lines to compute an accuracy when compared to over under
         y_lower = predictions[:, 0]  # alpha=0.476
         y_upper = predictions[:, 1]  # alpha=0.524
+
+        # Log-transform the quantiles to fit a normal distribution
+        log_y_lower = np.log(y_lower)
+        log_y_upper = np.log(y_upper)
+
+        # Calculate the mean (mu) and standard deviation (sigma) of the log-transformed data
+        log_mu = (log_y_lower + log_y_upper) / 2
+        log_sigma = (np.maximum(log_y_upper, log_y_lower) - np.minimum(log_y_upper, log_y_lower)) / (stats.norm.ppf(quantiles[1]) - stats.norm.ppf(quantiles[0]))
+
+        # Check for valid sigma values
+        assert np.all(log_sigma > 0), "Invalid sigma values: sigma must be positive"
+
+        # Calculate the CDF for z_test using the log-normal distribution
+        cdf_z_test = stats.lognorm.cdf(z_test, s=log_sigma, scale=np.exp(log_mu))
+
+        # Print the results
+        print("CDF for z_test:", cdf_z_test)
 
         padding = 0.5
         valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]

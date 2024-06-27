@@ -29,7 +29,7 @@ param_grid = {
 """
 
 param_grid = {
-    'max_depth': [3, 4, 5],
+    'max_depth': [3],
     'learning_rate': [0.05],
     'subsample': [0.8],
     'objective': ['reg:quantileerror'],
@@ -44,7 +44,7 @@ grid_search = GridSearchCV(xgb_model, param_grid, cv=10, scoring='neg_mean_absol
 
 # Get all possible combinations of features
 feature_combinations = []
-for i in range(1, len(x_train.columns) + 1):
+for i in range(1, 4):
     feature_combinations.extend(combinations(x_train.columns, i))
 
 # To store the results
@@ -79,3 +79,4 @@ top_5_df.to_csv('top_5_feature_combinations.csv', index=False)
 # Print the top 5 results
 print("Top 5 feature combinations:")
 print(top_5_df)
+
