@@ -12,10 +12,10 @@ import math
 
 def calculate_kalman_points(game_data, final_delta_t):
     # Calculate Q: variance of the differences between consecutive points
-    differences = np.diff(game_data['PTS'])
+    differences = np.diff(game_data['PTS']) / 3
 
     Q = np.var(differences, ddof=1)
-    R = 36 # MEASUREMENT VARIANCE (variance in differences)
+    R = 150 # MEASUREMENT VARIANCE (variance in LINE)
 
     game_data = game_data.sort_values(by='GAME_DATE')
 
@@ -28,19 +28,21 @@ def calculate_kalman_points(game_data, final_delta_t):
     K = np.zeros(n_timesteps)  # Kalman gain
 
     x_hat[0] = game_data['PTS'].iloc[0]
-    P[0] = 5.0
+    P[0] = 5.0 # Estimate in error cannot get better than maybe 5 points
 
     previous_timestamp = game_data['GAME_DATE'].iloc[0]
 
     # Kalman filter loop
     for t in range(1, n_timesteps):
         current_timestamp = game_data['GAME_DATE'].iloc[t]
-        delta_t = (current_timestamp - previous_timestamp).days
+        #delta_t = (current_timestamp - previous_timestamp).days
+        dalta_t = 1
         previous_timestamp = current_timestamp
 
         # Prediction step
         x_hat_minus[t] = x_hat[t-1]
-        P_minus[t] = P[t-1] + Q * delta_t / 3 # Adjust Q by delta_t
+        P_minus[t] = P[t-1] + Q 
+        # P_minus[t] = P[t-1] + Q * delta_t / 3 # Adjust Q by delta_t
 
         # Update step
         K[t] = P_minus[t] / (P_minus[t] + R)
@@ -49,7 +51,6 @@ def calculate_kalman_points(game_data, final_delta_t):
 
     # Predict the next game points
     x_hat_next = x_hat[-1] # no th
-    P_next = P[-1] + Q * final_delta_t / 3
     predicted_next_game_points = x_hat_next  # This is the predicted points for the next game
 
     return predicted_next_game_points
@@ -205,7 +206,7 @@ def calculate_wnba_features(df, today, matchups):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "Kalman", "Relative Performance", "Rest Days", "Recent T", "Opponent PPG", "My PPG"]
+    headers = ["L10 Median", "Kalman", "Relative Strength", "Relative Performance", "Rest Days", "Recent T", "Opponent PPG", "My PPG"]
     num_features = len(headers)
     
     if not today:
@@ -234,6 +235,7 @@ def calculate_wnba_features(df, today, matchups):
                 game_date = gamelog.loc[row_index, "GAME_DATE"].strftime('%Y-%m-%d')
                 opponent_ppg = calculate_avg_points_before_date(team, game_date)
                 my_ppg = calculate_avg_points_before_date(my_team, game_date) 
+                relative_strength = my_ppg - opponent_ppg
                 relative_performance = calculate_avg_points_on_date(my_team, game_date) - calculate_avg_points_before_date(my_team, game_date) 
             else:
                 # Find my team in the list of matchups
@@ -296,9 +298,10 @@ def calculate_wnba_features(df, today, matchups):
             # reversed_games = past_games[::-1]
             # print(gamelog.loc[row_index, 'GAME_DATE'])
             #print(gamelog.tail(len(past_games)))
+
+            # needs to be properly sorted 
             kalman = calculate_kalman_points(gamelog.tail(len(past_games)), final_delta_t=rest_days)
-            print(kalman)
-            
+
             # Skip that shit if for some reason we don't have valid shit (b/c then we can't really learn anything)
             #if not today and recent_t_statistic == 0:
                 #continue
@@ -331,4 +334,3 @@ if __name__ == "__main__":
     df = pd.read_csv('data/wnba_odds.csv')
     new_df = calculate_wnba_features(df, False, [])
     new_df.to_csv("data/wnba_train_regression.csv", index=False)
-    #print(calculate_kalman_points([4, 6, 22, 16, 10, 15, 17, 7, 8, 8, 10, 12, 7, 18, 12, 12, 4, 14]))

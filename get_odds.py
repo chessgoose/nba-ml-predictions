@@ -1,12 +1,20 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # SQLite Backend
+
+def get_spreads_today():
+    # Pinnacle Odds are by far the best ground truth for this
+    # https://www.pinnacle.com/en/basketball/wnba/matchups/#period:0
+
+    # Obtain the IMPLIED PPG of each team
+    
+    pass
 
 # Returns: pandas dataframe with odds 
 def get_odds_today(league="nba"):
@@ -43,30 +51,46 @@ def get_odds_today(league="nba"):
     for i, table in enumerate(tables):
         print(dates[i].text)
 
-        if "TODAY" not in dates[i].text:
-            continue
+        if "TODAY" in dates[i].text:
+            # Locate all rows within the table
+            rows = table.find_elements(By.XPATH, ".//tbody/tr")
 
-        # Locate all rows within the table
-        rows = table.find_elements(By.XPATH, ".//tbody/tr")
-
-        # Iterate through rows and extract text content of each cell
-        
-        for row in rows:
-            player_name = row.find_element(By.TAG_NAME, "th").text.split("\n")[0]
-            lines = row.find_elements(By.TAG_NAME, "td")
-
-            #print(len(lines))
-            #print(lines[0].text)
-            #print(lines[1].text)
-
-            over_odds = float(lines[0].text.split("\n")[2].replace('−', '-'))
-            line = float(lines[0].text.split("\n")[1])
-            under_odds = float(lines[1].text.split("\n")[2].replace('−', '-'))
+            # Iterate through rows and extract text content of each cell
             
-            row_data = [datetime.today().strftime('%Y-%m-%d'), player_name, line, under_odds, over_odds]
-            print(row_data)
-            data.append(row_data)
-        
+            for row in rows:
+                player_name = row.find_element(By.TAG_NAME, "th").text.split("\n")[0]
+                lines = row.find_elements(By.TAG_NAME, "td")
+
+                #print(len(lines))
+                #print(lines[0].text)
+                #print(lines[1].text)
+
+                over_odds = float(lines[0].text.split("\n")[2].replace('−', '-'))
+                line = float(lines[0].text.split("\n")[1])
+                under_odds = float(lines[1].text.split("\n")[2].replace('−', '-'))
+                
+                row_data = [datetime.today().strftime('%Y-%m-%d'), player_name, line, under_odds, over_odds]
+                print(row_data)
+                data.append(row_data)
+        elif "TOMORROW" in dates[i].text:
+            # Locate all rows within the table
+            rows = table.find_elements(By.XPATH, ".//tbody/tr")
+
+            # Iterate through rows and extract text content of each cell
+            
+            for row in rows:
+                player_name = row.find_element(By.TAG_NAME, "th").text.split("\n")[0]
+                lines = row.find_elements(By.TAG_NAME, "td")
+
+                over_odds = float(lines[0].text.split("\n")[2].replace('−', '-'))
+                line = float(lines[0].text.split("\n")[1])
+                under_odds = float(lines[1].text.split("\n")[2].replace('−', '-'))
+                
+                row_data = [(datetime.today() + timedelta(days=1)).strftime('%Y-%m-%d'), player_name, line, under_odds, over_odds]
+                print(row_data)
+                data.append(row_data)
+        else:
+            continue
     # Close the browser
     driver.quit()
 

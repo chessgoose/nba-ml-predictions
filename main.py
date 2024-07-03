@@ -3,7 +3,8 @@
 TODO: 
 - Fix neural network not training issues... 
 - Design frontend interface
-- Revise scraping methodology so that it's more consistent (espeically scraping odds from draftkings)
+- Revise scraping methodology so that it's more consistent (handle missing odds in row -- this is the biggest issue)
+
 - Combine create_dataset_from_odds and wnba_dataset
 - New features
     - Travel distance between
