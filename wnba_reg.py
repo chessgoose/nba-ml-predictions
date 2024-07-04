@@ -10,6 +10,40 @@ import rpy2
 import rpy2.robjects as ro
 import math
 
+# Weighted median calculator
+def median_3(weights, values):
+    s=0
+    n=sum(weights)
+    for i,w in enumerate(weights):
+        s+=w
+        if s>n/2:
+            if n%2 == 0:
+                if s-w==n/2:
+                    return (values[i]+values[i-1])/2
+                else:
+                    return values[i]
+            else:
+                return values[i]
+
+# Calculate ED points
+def calculate_ed_points(game_data, final_delta_t):
+    # Play around this value
+    beta = 0.995
+
+    # Convert date strings to datetime objects
+    game_dates = [datetime.datetime.strptime(date, "%Y-%m-%d") for date in dates]
+    current_date = datetime.datetime.now()
+
+    # Calculate the number of days ago each game took place
+    days_ago = [(current_date - game_date).days for game_date in game_dates]
+
+    # Calculate the weights and weighted points
+    weights = [beta ** t for t in days_ago]
+    weighted_points = [points[i] * weights[i] for i in range(len(points))]
+
+    # Calculate the weighted 
+    return median_3(weights, weighted_points)
+
 def calculate_kalman_points(game_data, final_delta_t):
     # Calculate Q: variance of the differences between consecutive points
     differences = np.diff(game_data['PTS']) / 3
@@ -206,7 +240,7 @@ def calculate_wnba_features(df, today, matchups):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "Kalman", "Relative Strength", "Relative Performance", "Rest Days", "Recent T", "Opponent PPG", "My PPG"]
+    headers = ["L10 Median", "Kalman", "Relative Performance", "Rest Days", "Recent T", "Spread"]
     num_features = len(headers)
     
     if not today:
@@ -233,9 +267,7 @@ def calculate_wnba_features(df, today, matchups):
                 my_team = gamelog.loc[row_index, "MATCHUP"].split(" ")[0]
                 my_team = my_team if my_team not in convert_team_abbreviations else convert_team_abbreviations[my_team]
                 game_date = gamelog.loc[row_index, "GAME_DATE"].strftime('%Y-%m-%d')
-                opponent_ppg = calculate_avg_points_before_date(team, game_date)
-                my_ppg = calculate_avg_points_before_date(my_team, game_date) 
-                relative_strength = my_ppg - opponent_ppg
+                spread = calculate_avg_points_on_date(my_team, game_date) - calculate_avg_points_on_date(team, game_date) 
                 relative_performance = calculate_avg_points_on_date(my_team, game_date) - calculate_avg_points_before_date(my_team, game_date) 
             else:
                 # Find my team in the list of matchups
@@ -275,9 +307,9 @@ def calculate_wnba_features(df, today, matchups):
 
             # Overall under rate and variance
             past_games = gamelog.loc[row_index + 1 :,  "PTS"].values
-            #print(past_games)
             last_10_median = np.median(past_games[:10])
             #print(past_games)
+
 
             # We don't have enough data to extract anything meaningful
             if len(past_games) < 5:
@@ -300,7 +332,9 @@ def calculate_wnba_features(df, today, matchups):
             #print(gamelog.tail(len(past_games)))
 
             # needs to be properly sorted 
-            kalman = calculate_kalman_points(gamelog.tail(len(past_games)), final_delta_t=rest_days)
+            last_games = gamelog.tail(len(past_games))
+            kalman = calculate_kalman_points(last_games, final_delta_t=rest_days)
+            ed = calculate_ed_points(last_games, final_delta_t=rest_days)
 
             # Skip that shit if for some reason we don't have valid shit (b/c then we can't really learn anything)
             #if not today and recent_t_statistic == 0:
@@ -313,9 +347,9 @@ def calculate_wnba_features(df, today, matchups):
                 #headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Points", "Line", "OU Result"]
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
                 # headers = ["FG PCT", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR"] 
-                dataset.append([last_10_median, kalman, relative_performance, rest_days, recent_t_statistic, opponent_ppg, my_ppg, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, kalman, relative_performance, rest_days, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
-                dataset.append([last_10_median, kalman, relative_performance, rest_days, recent_t_statistic, opponent_ppg, my_ppg])
+                dataset.append([last_10_median, kalman, relative_performance, rest_days, recent_t_statistic, spread])
         except:
             if today:
                 dataset.append([0 in range(num_features)])
@@ -324,9 +358,6 @@ def calculate_wnba_features(df, today, matchups):
             #dataset.append([0, 0, 0, 0])
 
     new_df = pd.DataFrame(dataset, columns=headers)
-
-    # new_df['FG T'] = pd.to_numeric(new_df['FG T'], errors='coerce')
-    # new_df = new_df.fillna(0)
     new_df = new_df.astype(float)
     return new_df
 

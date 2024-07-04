@@ -1,6 +1,7 @@
 
 """
 TODO: 
+- Calculate exponentional decay average of points as another parameter
 - Fix neural network not training issues... 
 - Design frontend interface
 - Revise scraping methodology so that it's more consistent (handle missing odds in row -- this is the biggest issue)

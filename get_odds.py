@@ -6,15 +6,99 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
-# SQLite Backend
+# Pinnacle spreads (would this even work in the US?)
+def get_team_points_today():
+    url = 'https://www.pinnacle.com/en/basketball/wnba/matchups/#team_total'
+
+    chrome_options = webdriver.ChromeOptions()
+    driver = webdriver.Chrome(options=chrome_options)
+
+    # Open the URL in the browser
+    driver.maximize_window()
+    driver.get(url)
+
+    # Define a wait object with a timeout
+    wait = WebDriverWait(driver, 5)  #5 seconds timeout
+
+    # Wait until the dates elements are present
+    data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="style_button-wrapper"]')))  # Adjust the substring as needed
+    
+    assert len(data) != 0
+    print(len(data))
+
+    # First team should be the first team on WNBA matchups for the day
+    totals = []
+
+    # 10 
+    for i, table in enumerate(data):
+        # First is moneyline spread
+        # Third is the total 
+        stuff = data[i].text
+        print(stuff)
+
+        if i % 8 == 0:
+            totals.append(float(stuff.split("\n")[0]))
+        elif i % 8 == 2:
+            totals.append(float(stuff.split("\n")[0]))
+
+
+        #rows = data[i].find_elements(By.CSS_SELECTOR, '[class*="style_button-wrapper"]')
+        # Get the style label within each value
+
+    print(totals)
+    driver.quit()
+    return totals 
 
 def get_spreads_today():
     # Pinnacle Odds are by far the best ground truth for this
-    # https://www.pinnacle.com/en/basketball/wnba/matchups/#period:0
+    url = 'https://www.pinnacle.com/en/basketball/wnba/matchups/#period:0'
+
+    chrome_options = webdriver.ChromeOptions()
+    # chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
+    driver = webdriver.Chrome(options=chrome_options)
+
+    # Open the URL in the browser
+    driver.maximize_window()
+    driver.get(url)
+
+    # Define a wait object with a timeout
+    wait = WebDriverWait(driver, 5)  #5 seconds timeout
+
+    # Wait until the dates elements are present
+    data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="style_button-wrapper"]')))  # Adjust the substring as needed
+    
+    assert len(data) != 0
+    print(len(data))
+
+    # First team should be the first team on WNBA matchups for the day
+    spreads = []
+    totals = []
+
+    # 10 
+    for i, table in enumerate(data):
+        # First is moneyline spread
+        # Third is the total 
+        stuff = data[i].text
+        print(stuff)
+        
+        if i % 6 == 0:
+            s = float(stuff.split("\n")[0]) 
+            # We have a spread
+            spreads.append(s)
+        elif i % 6 == 5:
+            t = float(stuff.split("\n")[0]) 
+            totals.append(t)
+
+        #rows = data[i].find_elements(By.CSS_SELECTOR, '[class*="style_button-wrapper"]')
+        # Get the style label within each value
+
+    driver.quit()
+
+    print(f"Spreads: {spreads}")
+    print(f"Totals: {totals}")
 
     # Obtain the IMPLIED PPG of each team
-    
-    pass
+    return spreads, totals
 
 # Returns: pandas dataframe with odds 
 def get_odds_today(league="nba"):
@@ -29,8 +113,8 @@ def get_odds_today(league="nba"):
     driver = webdriver.Chrome(options=chrome_options)
 
     # Open the URL in the browser
-    driver.get(url)
     driver.maximize_window()
+    driver.get(url)
 
     # Extract data using Selenium locators
 
@@ -132,6 +216,8 @@ def get_matchups():
                 team1 = teams[0].text.strip()
                 team2 = teams[1].text.strip()
                 matchups.append((team1, team2))
+        
+        print(matchups)
     except:
         return []
 
@@ -143,6 +229,10 @@ def get_matchups():
 
 if __name__ == "__main__":
     # Find both odds for NBA and WNBA
+    get_matchups()
+
+
+    """
     file_name = 'data/wnba_odds.csv'
     df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
@@ -150,6 +240,7 @@ if __name__ == "__main__":
     if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
+    """
         
     """
     file_name = 'data/new_odds_two.csv'
