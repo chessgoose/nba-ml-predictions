@@ -18,32 +18,46 @@ def get_team_points_today():
     driver.get(url)
 
     # Define a wait object with a timeout
-    wait = WebDriverWait(driver, 5)  #5 seconds timeout
+    wait = WebDriverWait(driver, 10)  #5 seconds timeout
 
     # Wait until the dates elements are present
-    data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="style_button-wrapper"]')))  # Adjust the substring as needed
+    data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="style_slot"]')))  # Adjust the substring as needed
     
     assert len(data) != 0
     print(len(data))
 
     # First team should be the first team on WNBA matchups for the day
     totals = []
+    relevant = []
 
     # 10 
     for i, table in enumerate(data):
         # First is moneyline spread
         # Third is the total 
         stuff = data[i].text
-        print(stuff)
+        if "GAME" in stuff:
+            continue
+        if "HALF" in stuff:
+            continue
+        if "OVER" in stuff:
+            continue
+        relevant.append(stuff)
 
+    for i, text in enumerate(relevant):
+        if i % 2 == 0:
+            numbers = text.split("\n")
+            totals.append(float(numbers[0]))
+            totals.append(float(numbers[4]))
+
+
+        """
         if i % 8 == 0:
             totals.append(float(stuff.split("\n")[0]))
         elif i % 8 == 2:
             totals.append(float(stuff.split("\n")[0]))
-
-
+        """
         #rows = data[i].find_elements(By.CSS_SELECTOR, '[class*="style_button-wrapper"]')
-        # Get the style label within each value
+        #Get the style label within each value
 
     print(totals)
     driver.quit()
@@ -132,7 +146,7 @@ def get_odds_today(league="nba"):
     assert len(tables) != 0
 
     # Print the text content of each element
-    for i, table in enumerate(tables):
+    for i, table in enumerate(tables[0:len(tables) - 1]):
         print(dates[i].text)
 
         if "TODAY" in dates[i].text:
@@ -175,9 +189,9 @@ def get_odds_today(league="nba"):
                 data.append(row_data)
         else:
             continue
+
     # Close the browser
     driver.quit()
-
     new_rows = pd.DataFrame(data, columns=headers)
     return new_rows
 
@@ -229,10 +243,8 @@ def get_matchups():
 
 if __name__ == "__main__":
     # Find both odds for NBA and WNBA
-    get_matchups()
+    # get_team_points_today()
 
-
-    """
     file_name = 'data/wnba_odds.csv'
     df = pd.read_csv(file_name, index_col=False)
     headers = ["Date", "Player", "Line", "Over", "Under"]
@@ -240,8 +252,7 @@ if __name__ == "__main__":
     if not new_rows.empty:
         df = pd.concat([df, new_rows])
         df.to_csv(file_name, index=False)
-    """
-        
+
     """
     file_name = 'data/new_odds_two.csv'
     df = pd.read_csv(file_name, index_col=False)

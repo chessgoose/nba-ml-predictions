@@ -10,39 +10,50 @@ import rpy2
 import rpy2.robjects as ro
 import math
 
-# Weighted median calculator
-def median_3(weights, values):
-    s=0
-    n=sum(weights)
-    for i,w in enumerate(weights):
-        s+=w
-        if s>n/2:
-            if n%2 == 0:
-                if s-w==n/2:
-                    return (values[i]+values[i-1])/2
-                else:
-                    return values[i]
-            else:
-                return values[i]
-
-# Calculate ED points
-def calculate_ed_points(game_data, final_delta_t):
+# This is likely how draftkings 
+def calculate_ed_points(game_data, current_date):
+    # Calculate ED points
+    def weighted_median(data, weights):
+        # Convert data and weights to numpy arrays
+        data = np.array(data)
+        weights = np.array(weights)
+        
+        # Sort data and weights based on data values
+        sorted_indices = np.argsort(data)
+        sorted_data = data[sorted_indices]
+        sorted_weights = weights[sorted_indices]
+        
+        # Compute the cumulative sum of the weights
+        cumulative_weights = np.cumsum(sorted_weights)
+        
+        # Find the index where the cumulative sum reaches or exceeds half the total weight
+        half_weight = np.sum(weights) / 2.0
+        median_index = np.where(cumulative_weights >= half_weight)[0][0]
+        
+        # Return the corresponding data value as the weighted median
+        return sorted_data[median_index]
+        
     # Play around this value
-    beta = 0.995
+    beta = 0.97
 
     # Convert date strings to datetime objects
-    game_dates = [datetime.datetime.strptime(date, "%Y-%m-%d") for date in dates]
-    current_date = datetime.datetime.now()
+    game_dates = game_data['GAME_DATE'].values
 
     # Calculate the number of days ago each game took place
-    days_ago = [(current_date - game_date).days for game_date in game_dates]
+    days_ago = [(current_date - game_date).astype('timedelta64[D]').astype(int) for game_date in game_dates]
+    points = game_data['PTS'].values
 
     # Calculate the weights and weighted points
     weights = [beta ** t for t in days_ago]
-    weighted_points = [points[i] * weights[i] for i in range(len(points))]
-
-    # Calculate the weighted 
-    return median_3(weights, weighted_points)
+    weighted_sum = np.sum(points * weights)
+    sum_of_weights = np.sum(weights)
+    
+    
+    weighted_mean = weighted_sum / sum_of_weights
+    return weighted_mean
+    """
+    return weighted_median(points, weights)
+    """
 
 def calculate_kalman_points(game_data, final_delta_t):
     # Calculate Q: variance of the differences between consecutive points
@@ -114,7 +125,7 @@ convert_team_abbreviations = {
 }
 
 #Calculate features given our odds
-def calculate_wnba_features(df, today, matchups):
+def calculate_wnba_features(df, today, matchups, expected_points):
     superstars = df['Player']
     game_records_by_player = {}
     player_count = 0
@@ -240,7 +251,7 @@ def calculate_wnba_features(df, today, matchups):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "Kalman", "Relative Performance", "Rest Days", "Recent T", "Spread"]
+    headers = ["L10 Median", "Kalman", "DARKO", "Relative Performance", "Rest Days", "Recent T", "Spread"]
     num_features = len(headers)
     
     if not today:
@@ -334,8 +345,9 @@ def calculate_wnba_features(df, today, matchups):
             # needs to be properly sorted 
             last_games = gamelog.tail(len(past_games))
             kalman = calculate_kalman_points(last_games, final_delta_t=rest_days)
-            ed = calculate_ed_points(last_games, final_delta_t=rest_days)
-
+            # if not today else np.datetime64(datetime.now())
+            ed = calculate_ed_points(last_games, current_date=np.datetime64(gamelog.loc[row_index, 'GAME_DATE']))
+            print(f"ED: {ed}")
             # Skip that shit if for some reason we don't have valid shit (b/c then we can't really learn anything)
             #if not today and recent_t_statistic == 0:
                 #continue
@@ -347,9 +359,9 @@ def calculate_wnba_features(df, today, matchups):
                 #headers = ["L10 Median", "FG T", "Minutes Diff", "Rest Days", "Points", "Line", "OU Result"]
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
                 # headers = ["FG PCT", "Home", "Minutes Diff", "Rest Days", "L5UR", "UR"] 
-                dataset.append([last_10_median, kalman, relative_performance, rest_days, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, kalman, ed, relative_performance, rest_days, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
-                dataset.append([last_10_median, kalman, relative_performance, rest_days, recent_t_statistic, spread])
+                dataset.append([last_10_median, kalman, ed, relative_performance, rest_days, recent_t_statistic, spread])
         except:
             if today:
                 dataset.append([0 in range(num_features)])
@@ -363,5 +375,5 @@ def calculate_wnba_features(df, today, matchups):
 
 if __name__ == "__main__":
     df = pd.read_csv('data/wnba_odds.csv')
-    new_df = calculate_wnba_features(df, False, [])
+    new_df = calculate_wnba_features(df, False, [], {})
     new_df.to_csv("data/wnba_train_regression.csv", index=False)

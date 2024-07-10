@@ -6,6 +6,7 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
 import rpy2
 import rpy2.robjects as ro
+from datetime import datetime
 
 
 # R = 100 - optimal 
@@ -154,6 +155,44 @@ def get_player_stats(first_name, last_name):
     stats = r_get_player_stats(player_index, first_name, last_name)
     return stats
 
+def calculate_ed_points(game_data, current_date, final_delta_t):
+    # Calculate ED points
+    def weighted_median(data, weights):
+        # Convert data and weights to numpy arrays
+        data = np.array(data)
+        weights = np.array(weights)
+        
+        # Sort data and weights based on data values
+        sorted_indices = np.argsort(data)
+        sorted_data = data[sorted_indices]
+        sorted_weights = weights[sorted_indices]
+        
+        # Compute the cumulative sum of the weights
+        cumulative_weights = np.cumsum(sorted_weights)
+        
+        # Find the index where the cumulative sum reaches or exceeds half the total weight
+        half_weight = np.sum(weights) / 2.0
+        median_index = np.where(cumulative_weights >= half_weight)[0][0]
+        
+        # Return the corresponding data value as the weighted median
+        return sorted_data[median_index]
+        
+    # Play around this value
+    beta = 0.99
+
+    # Convert date strings to datetime objects
+    game_dates = game_data['GAME_DATE'].values
+
+    # Calculate the number of days ago each game took place
+    days_ago = [(current_date - game_date).astype('timedelta64[D]').astype(int) for game_date in game_dates]
+    print(days_ago)
+    points = game_data['PTS'].values
+    print(points)
+
+    # Calculate the weights and weighted points
+    weights = [beta ** t for t in days_ago]
+    return weighted_median(points, weights)
+
 superstars = ['Napheesa Collier', 'Tina Charles', 'Caitlin Clark', 'Skylar Diggins-Smith', 'Ariel Atkins', 'Diana Taurasi', 'DiJonai Carrington']
 
 for player in superstars:
@@ -164,11 +203,18 @@ for player in superstars:
     player_stats = get_player_stats(first_name, last_name)
     gamelog = ro.conversion.rpy2py(player_stats)
     gamelog['GAME_DATE'] = pd.to_datetime(gamelog['GAME_DATE'], format="%b %d, %Y")
+    # Why is it not
     gamelog['FGA'] = gamelog['FGA'].astype(float)
     gamelog['MIN'] = gamelog['MIN'].astype(float)
     gamelog['PTS'] = gamelog['PTS'].astype(float)
+    
+    print(gamelog)
+    current_date = np.datetime64(datetime.now())
+    points = calculate_ed_points(gamelog, current_date, 1)
+    print(points)
 
     # Hyperparameter tuning on R and P_0
+    """
     R_values = np.linspace(1, 1000, 20)  # Example values for R
     P_0_values = np.linspace(1, 5, 2)  # Example values for P_0
 
@@ -185,7 +231,7 @@ for player in superstars:
     print(f"Predictions: {best_predictions}")
     print(len(best_predictions))
 
-
+    """
 
 
 

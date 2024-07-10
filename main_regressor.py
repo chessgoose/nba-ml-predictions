@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 import sys
-from get_odds import get_odds_today, get_matchups
+from get_odds import get_odds_today, get_matchups, get_team_points_today
 from dataloading import drop_regression_stats
 from nba_reg import calculate_features
 from wnba_reg import calculate_wnba_features
@@ -29,15 +29,23 @@ ou_model_name = get_best_model(league)
 print(ou_model_name)
 
 # get odds
+"""
 odds_today = get_odds_today(league)
 if odds_today.empty:
     sys.exit(f"No {league} games for today")
-
 print(odds_today)
+"""
 
+# Get points
 matchups = get_matchups()
+points = get_team_points_today()  # set to be 0 if there is an issue
+flattened_teams = [item for sublist in matchups for item in sublist]
+assert len(flattened_teams) == len(points)
+expected_points = dict(zip(flattened_teams, points))
 print(matchups)
-data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, matchups)
+print(expected_points)
+
+data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, matchups, {})
 print(data)
 drop_regression_stats(data)
 

@@ -12,7 +12,7 @@ from dataloading import load_regression_data, drop_regression_stats
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-random_seed = 1234
+random_seed = 64
 np.random.seed(random_seed)
 
 data = load_regression_data(league)
@@ -51,7 +51,7 @@ for x in tqdm(range(20)):
     param = {
         'objective': 'reg:quantileerror',
         "quantile_alpha": quantiles,
-        'max_depth': 4,
+        'max_depth': 3,
         'eta': 0.05,
         'subsample': 0.8
     }
@@ -60,6 +60,8 @@ for x in tqdm(range(20)):
     # can set feature_weights too
 
     model = xgb.train(param, train, num_boost_round=1000, early_stopping_rounds=40, evals=evals, verbose_eval=0)
+
+    print("Best iteration: ", model.best_iteration)
     
     if model.best_iteration <= 30:
         continue
@@ -77,7 +79,6 @@ for x in tqdm(range(20)):
         scores = pd.DataFrame(data=values, index=keys, columns=["score"]).sort_values(by = "score", ascending=False)
         print(scores)
 
-        print("Best iteration: ", model.best_iteration)
         best_calibration_error = calibration_error
         best_model = model
         best_coverage_results = coverages
@@ -103,8 +104,6 @@ for x in tqdm(range(20)):
         cdf_z_test = stats.lognorm.cdf(z_test, s=log_sigma, scale=np.exp(log_mu))
 
         # Print the results
-        print("CDF for z_test:", cdf_z_test)
-
         padding = 0.5
         valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
 
