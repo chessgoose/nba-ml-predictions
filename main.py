@@ -1,16 +1,17 @@
 
 """
 TODO: 
-- Calculate exponentional decay average of points
-- Fix neural network not training issues... 
-- Design frontend interface
-- Revise scraping methodology so that it's more consistent (handle missing odds in row -- this is the biggest issue)
+
+Data Exploration
+- Examine home bias -- is there a bias exhibited in the lines towards the home team that can be taken advantage of?
+
+Software Engineering
+- Design frontend interface (once it works consistently)
+- Revise scraping methodology to improve consistency
 
 - Combine create_dataset_from_odds and wnba_dataset
 - New features
-    - Travel distance between
-    - Opponent pace for WNBA (and NBA) (difference in my team vs opponent pace too)
-    - Conditional on the game line LOL -- what was the ulimate point differential between the two teams. You can use the Vegas game line as a ground truth game line when making predictions
+    - Travel distance between games 
 
 - Clean up and comment code
     - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
@@ -23,8 +24,6 @@ TODO:
 - PCA ? 
 - Implement pinball loss
 - Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
-- New approach -- unified SARIMAX model using player-specific exogenous variables... 
-   - Regressive based approach that is independent of the line might be more effective 
 """
 
 import numpy as np

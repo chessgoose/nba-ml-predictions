@@ -29,15 +29,14 @@ ou_model_name = get_best_model(league)
 print(ou_model_name)
 
 # get odds
-"""
 odds_today = get_odds_today(league)
 if odds_today.empty:
     sys.exit(f"No {league} games for today")
 print(odds_today)
-"""
 
 # Get points
 matchups = get_matchups()
+# can get the matchups from the expected points LMAO
 points = get_team_points_today()  # set to be 0 if there is an issue
 flattened_teams = [item for sublist in matchups for item in sublist]
 assert len(flattened_teams) == len(points)
@@ -45,7 +44,7 @@ expected_points = dict(zip(flattened_teams, points))
 print(matchups)
 print(expected_points)
 
-data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, matchups, {})
+data = calculate_features(odds_today, True, [], []) if league == "nba" else calculate_wnba_features(odds_today, True, matchups, expected_points)
 print(data)
 drop_regression_stats(data)
 

@@ -27,6 +27,9 @@ print(data.head())
 data.drop(["OU Result", "Line", "Points", "FG T", "Minutes Diff"], axis=1, inplace=True)
 print(data.head())
 
+# FIT ON DIFFERENCE between POINTS and DARKO 
+data['Difference'] = data['Points'] - data['DARKO']
+
 acc_results = []
 x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=0.2, shuffle=True, random_state=random_seed)
 

@@ -44,7 +44,7 @@ grid_search = GridSearchCV(xgb_model, param_grid, cv=10, scoring='neg_mean_absol
 
 # Get all possible combinations of features
 feature_combinations = []
-for i in range(1, 3):
+for i in range(1,4):
     feature_combinations.extend(combinations(x_train.columns, i))
 
 # To store the results

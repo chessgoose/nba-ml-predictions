@@ -49,16 +49,9 @@ def get_team_points_today():
             totals.append(float(numbers[0]))
             totals.append(float(numbers[4]))
 
+    # can we scrape the team data too?
 
-        """
-        if i % 8 == 0:
-            totals.append(float(stuff.split("\n")[0]))
-        elif i % 8 == 2:
-            totals.append(float(stuff.split("\n")[0]))
-        """
-        #rows = data[i].find_elements(By.CSS_SELECTOR, '[class*="style_button-wrapper"]')
-        #Get the style label within each value
-
+    
     print(totals)
     driver.quit()
     return totals 
@@ -76,7 +69,7 @@ def get_spreads_today():
     driver.get(url)
 
     # Define a wait object with a timeout
-    wait = WebDriverWait(driver, 5)  #5 seconds timeout
+    wait = WebDriverWait(driver, 10)  #5 seconds timeout
 
     # Wait until the dates elements are present
     data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="style_button-wrapper"]')))  # Adjust the substring as needed
@@ -114,6 +107,18 @@ def get_spreads_today():
     # Obtain the IMPLIED PPG of each team
     return spreads, totals
 
+# FIX THIS SHIT BUT IT WORKS FOR NOW I GUESS
+def handle_popups(driver):
+    try:
+        # Example of handling a generic popup, can be customized as per the actual popup
+        popups = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "modal-with-mask")))
+        print(len(popups))
+        for popup in popups:
+            close_button = popup.find_element(By.CLASS_NAME, "primary")
+            close_button.click()
+    except Exception as e:
+        print("No pop-ups found or unable to close pop-up: ", e)
+
 # Returns: pandas dataframe with odds 
 def get_odds_today(league="nba"):
     data = []
@@ -131,6 +136,7 @@ def get_odds_today(league="nba"):
     driver.get(url)
 
     # Extract data using Selenium locators
+    handle_popups(driver)
 
     # Define a wait object with a timeout
     wait = WebDriverWait(driver, 5)  #5 seconds timeout
@@ -146,7 +152,7 @@ def get_odds_today(league="nba"):
     assert len(tables) != 0
 
     # Print the text content of each element
-    for i, table in enumerate(tables[0:len(tables) - 1]):
+    for i, table in enumerate(tables):
         print(dates[i].text)
 
         if "TODAY" in dates[i].text:
@@ -191,7 +197,7 @@ def get_odds_today(league="nba"):
             continue
 
     # Close the browser
-    driver.quit()
+    #driver.quit()
     new_rows = pd.DataFrame(data, columns=headers)
     return new_rows
 

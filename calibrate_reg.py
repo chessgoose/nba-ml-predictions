@@ -12,7 +12,7 @@ from dataloading import load_regression_data, drop_regression_stats
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-random_seed = 64
+random_seed = 42
 np.random.seed(random_seed)
 
 data = load_regression_data(league)
@@ -42,7 +42,8 @@ best_calibration_error = float('inf')
 best_coverage_results = None
 
 for x in tqdm(range(20)):
-    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=.2, shuffle=True)
+    # No shuffle -- inot shuffling causes it to not train
+    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=.2)
 
     train = xgb.DMatrix(x_train, label=y_train, missing=-np.inf)
     test = xgb.DMatrix(x_test, label=y_test, missing=-np.inf)
@@ -59,7 +60,7 @@ for x in tqdm(range(20)):
     #  'interaction_constraints': [["L10 Median", "Minutes Diff"], ["L10 Median", "Rest Days"]]
     # can set feature_weights too
 
-    model = xgb.train(param, train, num_boost_round=1000, early_stopping_rounds=40, evals=evals, verbose_eval=0)
+    model = xgb.train(param, train, num_boost_round=1000, early_stopping_rounds=50, evals=evals, verbose_eval=0)
 
     print("Best iteration: ", model.best_iteration)
     
@@ -104,7 +105,7 @@ for x in tqdm(range(20)):
         cdf_z_test = stats.lognorm.cdf(z_test, s=log_sigma, scale=np.exp(log_mu))
 
         # Print the results
-        padding = 0.5
+        padding = 1.0
         valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
 
         valid_predictions = (y_lower[valid_indices] + y_upper[valid_indices]) / 2
