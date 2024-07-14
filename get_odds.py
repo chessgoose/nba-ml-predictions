@@ -169,9 +169,9 @@ def get_odds_today(league="nba"):
                 #print(lines[0].text)
                 #print(lines[1].text)
 
-                over_odds = float(lines[0].text.split("\n")[2].replace('−', '-'))
+                over_odds = float(lines[0].text.split("\n")[2].replace('−', '-')) if len(lines[0].text.split("\n")) > 2 else 0
                 line = float(lines[0].text.split("\n")[1])
-                under_odds = float(lines[1].text.split("\n")[2].replace('−', '-'))
+                under_odds = float(lines[1].text.split("\n")[2].replace('−', '-')) if len(lines[1].text.split("\n")) > 2 else 0
                 
                 row_data = [datetime.today().strftime('%Y-%m-%d'), player_name, line, under_odds, over_odds]
                 print(row_data)

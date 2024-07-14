@@ -1,13 +1,13 @@
 
 """
 TODO: 
-
 Data Exploration
+- Linear regression new feature: FIT RELATIVE PERFORMANCE ON DIFFERENCE between POINTS and DARKO, LOG TRANSFORM EVERYTHING
 - Examine home bias -- is there a bias exhibited in the lines towards the home team that can be taken advantage of?
 
 Software Engineering
 - Design frontend interface (once it works consistently)
-- Revise scraping methodology to improve consistency
+- Pin ball loss
 
 - Combine create_dataset_from_odds and wnba_dataset
 - New features
@@ -17,13 +17,15 @@ Software Engineering
     - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
 - Include other odds for points
 
-- Try fit transform on overall instead of calculting t-statistic
-
 - Long term - SQL Databases
 
+
+BACKLOG
 - PCA ? 
 - Implement pinball loss
 - Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
+- Revise scraping methodology to improve consistency
+
 """
 
 import numpy as np

@@ -251,7 +251,7 @@ def calculate_wnba_features(df, today, matchups, expected_points):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "Kalman", "DARKO", "Relative Performance", "Rest Days", "Recent T", "Spread"]
+    headers = ["L10 Median", "Kalman", "DARKO", "Relative Performance", "Home", "Recent T", "Spread"]
     num_features = len(headers)
     
     if not today:
@@ -355,10 +355,10 @@ def calculate_wnba_features(df, today, matchups, expected_points):
 
             if not today:
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
-                dataset.append([last_10_median, kalman, ed, relative_performance, rest_days, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, kalman, ed, relative_performance, home, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
                 # ["L10 Median", "Kalman", "DARKO", "Relative Performance", "Rest Days", "Recent T", "Spread"]
-                dataset.append([last_10_median, kalman, ed, relative_performance, rest_days, recent_t_statistic, spread])
+                dataset.append([last_10_median, kalman, ed, relative_performance, home, recent_t_statistic, spread])
         except:
             if today:
                 dataset.append([0 in range(num_features)])

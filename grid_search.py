@@ -8,6 +8,7 @@ from dataloading import load_data, load_regression_data
 from sklearn.model_selection import GridSearchCV
 import warnings
 from itertools import combinations
+import pickle
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -28,6 +29,20 @@ param_grid = {
 }
 """
 
+# Load the model from the file
+with open('linear_regression_model.pkl', 'rb') as file:
+    loaded_model = pickle.load(file)
+
+relative_performance = x_train['Relative Performance']
+
+shifted_relative_performance = relative_performance - relative_performance.min() + 1  # Shift to make all values positive
+sqrt_relative_performance = np.sqrt(shifted_relative_performance)
+
+# Now you can use the loaded model to make predictions
+predictions = loaded_model.predict(np.array(sqrt_relative_performance).reshape(-1, 1))
+
+x_train['Adjusted Points'] = x_train['DARKO'] + predictions
+
 param_grid = {
     'max_depth': [3],
     'learning_rate': [0.05],
@@ -44,7 +59,7 @@ grid_search = GridSearchCV(xgb_model, param_grid, cv=10, scoring='neg_mean_absol
 
 # Get all possible combinations of features
 feature_combinations = []
-for i in range(1,4):
+for i in range(1,3):
     feature_combinations.extend(combinations(x_train.columns, i))
 
 # To store the results

@@ -64,4 +64,4 @@ def load_regression_data(league):
     return data
 
 def drop_regression_stats(data):
-    data.drop(["L10 Median", "Kalman", "Rest Days", "Recent T", "Spread"], axis=1, inplace=True)
+    data.drop(["L10 Median", "Kalman", "Home", "Recent T", "Spread"], axis=1, inplace=True)
