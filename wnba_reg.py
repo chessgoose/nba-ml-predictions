@@ -328,7 +328,8 @@ def calculate_wnba_features(df, today, matchups, expected_points):
 
 
             # We don't have enough data to extract anything meaningful
-            if len(past_games) < 5:
+            # 8 is a reasonable number because 8 games should be enough to 
+            if len(past_games) < 8:
                 continue
 
             last_5_points = gamelog.loc[row_index + 1 : row_index + 5, "PTS"].values

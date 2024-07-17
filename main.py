@@ -2,12 +2,12 @@
 """
 TODO: 
 Data Exploration
-- Linear regression new feature: FIT RELATIVE PERFORMANCE ON DIFFERENCE between POINTS and DARKO, LOG TRANSFORM EVERYTHING
-- Examine home bias -- is there a bias exhibited in the lines towards the home team that can be taken advantage of?
+- BACKTESTING PROFIT implementation
 
 Software Engineering
 - Design frontend interface (once it works consistently)
 - Pin ball loss
+- include all players from the season and all games -- just use the dataset as a testing dataset and train on the rest LMFAO. this will significantly expand dataset. remove ppg below 5
 
 - Combine create_dataset_from_odds and wnba_dataset
 - New features
@@ -19,10 +19,8 @@ Software Engineering
 
 - Long term - SQL Databases
 
-
 BACKLOG
 - PCA ? 
-- Implement pinball loss
 - Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
 - Revise scraping methodology to improve consistency
 

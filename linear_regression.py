@@ -31,7 +31,8 @@ print(data.head())
 relative_performance = data['Relative Performance']
 data['Difference'] = data['Points'] - data['DARKO']
 
-shifted_relative_performance = relative_performance - relative_performance.min() + 1  # Shift to make all values positive
+# TODO: Try log transofrmation
+shifted_relative_performance = relative_performance - relative_performance.min() + 1  # Shift to make all values positive -- BIASED? though
 sqrt_relative_performance = np.sqrt(shifted_relative_performance)
 
 y_axis = data['Difference']

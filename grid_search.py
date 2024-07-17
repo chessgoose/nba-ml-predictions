@@ -46,7 +46,7 @@ x_train['Adjusted Points'] = x_train['DARKO'] + predictions
 param_grid = {
     'max_depth': [3],
     'learning_rate': [0.05],
-    'subsample': [0.8],
+    'subsample': [0.5, 0.7, 0.9],
     'objective': ['reg:quantileerror'],
     "quantile_alpha": [0.5]
 }
@@ -83,7 +83,7 @@ for feature_subset in tqdm(feature_combinations, desc="Feature combinations"):
 results = sorted(results, key=lambda x: x['best_score'], reverse=True)
 
 # Get the top 5 results
-top_5_results = results[:5]
+top_5_results = results[:10]
 
 # Convert to a DataFrame for saving
 top_5_df = pd.DataFrame(top_5_results)
