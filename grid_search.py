@@ -4,7 +4,7 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_data, load_regression_data
+from dataloading import load_data, load_regression_data, load_2023_data
 from sklearn.model_selection import GridSearchCV
 import warnings
 from itertools import combinations
@@ -13,9 +13,12 @@ import pickle
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Define the hyperparameter grid
-x_train = load_regression_data("wnba")
+#x_train = load_regression_data("wnba")
+x_train = load_2023_data()
 y_train = x_train["Points"]
-x_train.drop(["Points", "Line", "OU Result"], axis=1, inplace=True)
+x_train.drop(["Points"], axis=1, inplace=True)
+
+#x_train.drop(["Points", "Line", "OU Result"], axis=1, inplace=True)
 #x_train, x_test, y_train, y_test = train_test_split(data, OU, test_size=.1)
 print(x_train)
 

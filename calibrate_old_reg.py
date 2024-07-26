@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 import scipy.stats as stats
 from tqdm import tqdm
 import warnings
-from dataloading import load_regression_data, drop_regression_stats
+from dataloading import load_regression_data, drop_regression_stats, load_2023_data
 
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -15,14 +15,12 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 random_seed = 42
 np.random.seed(random_seed)
 
-data = load_regression_data(league)
-lines = data['Line']
-OU = data['OU Result']
-points = data['Points']
+data = load_2023_data()
+points = data["Points"]
 print(data.head())
 
 drop_regression_stats(data)
-data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
+data.drop(["Points"], axis=1, inplace=True)
 print(data.head())
 
 quantiles = np.array([0.476, 0.524])
@@ -43,7 +41,7 @@ best_coverage_results = None
 
 for x in tqdm(range(20)):
     # No shuffle -- inot shuffling causes it to not train
-    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=.2)
+    x_train, x_test, y_train, y_test = train_test_split(data, points, test_size=.2)
 
     train = xgb.DMatrix(x_train, label=y_train, missing=-np.inf)
     test = xgb.DMatrix(x_test, label=y_test, missing=-np.inf)
@@ -54,7 +52,7 @@ for x in tqdm(range(20)):
         "quantile_alpha": quantiles,
         'max_depth': 3,
         'eta': 0.05,
-        'subsample': 0.5
+        'subsample': 0.7
     }
 
     #  'interaction_constraints': [["L10 Median", "Minutes Diff"], ["L10 Median", "Rest Days"]]
@@ -86,43 +84,7 @@ for x in tqdm(range(20)):
 
         print(f"Best coverage error: {best_calibration_error}")
 
-        # Compare the predictions to the lines to compute an accuracy when compared to over under
-        y_lower = predictions[:, 0]  # alpha=0.476
-        y_upper = predictions[:, 1]  # alpha=0.524
-
-        # Log-transform the quantiles to fit a normal distribution
-        log_y_lower = np.log(y_lower)
-        log_y_upper = np.log(y_upper)
-
-        # Calculate the mean (mu) and standard deviation (sigma) of the log-transformed data
-        log_mu = (log_y_lower + log_y_upper) / 2
-        log_sigma = (np.maximum(log_y_upper, log_y_lower) - np.minimum(log_y_upper, log_y_lower)) / (stats.norm.ppf(quantiles[1]) - stats.norm.ppf(quantiles[0]))
-
-        # Check for valid sigma values
-        assert np.all(log_sigma > 0), "Invalid sigma values: sigma must be positive"
-
-        # Calculate the CDF for z_test using the log-normal distribution
-        cdf_z_test = stats.lognorm.cdf(z_test, s=log_sigma, scale=np.exp(log_mu))
-        print(cdf_z_test)
-
-        # Print the results
-        padding = 1.0
-        valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
-
-        valid_predictions = (y_lower[valid_indices] + y_upper[valid_indices]) / 2
-        valid_y_test = y_test.iloc[valid_indices]
-        valid_z_test = z_test.iloc[valid_indices]
-
-        mae = mean_absolute_error(valid_y_test, valid_predictions)
-        print(f"MAE: {mae}")
-
-        # Compare the predictions to the lines to compute accuracy when compared to over/under
-        predicted_ou_results = np.where(valid_predictions > valid_z_test, 1, 0)
-        actual_ou_results = np.where(valid_y_test > valid_z_test, 1, 0)
-        acc = round(np.mean(predicted_ou_results == actual_ou_results) * 100, 1)
-        print(f"Accuracy: {acc}% on {len(predicted_ou_results)} results")
-
-        model.save_model(f'models/regression/{league}/XGBoost_{acc}%_OU.json')
+        model.save_model(f'models/regression/{league}/XGBoost_2023.json')
 
 print(f"Best calibration error: {best_calibration_error}")
 print(f"Best coverage results: {best_coverage_results}")
