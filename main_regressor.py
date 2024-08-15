@@ -25,7 +25,8 @@ def get_best_model(league):
             best_accuracy = model_accuracy
     return f'models/regression/{league}/' + new_file
 
-ou_model_name = get_best_model(league)
+#ou_model_name = get_best_model(league)
+ou_model_name = 'models/regression/WNBA/XGBoost_2023.json'
 print(ou_model_name)
 
 # get odds
@@ -36,10 +37,14 @@ print(odds_today)
 
 # Get points
 matchups = get_matchups()
-# can get the matchups from the expected points LMAO
-points = get_team_points_today()  # set to be 0 if there is an issue
+# points = get_team_points_today()  # set to be 0 if there is an issue
+# TODO: input points manually since fuck pinnacle
 flattened_teams = [item for sublist in matchups for item in sublist]
+points = [0] * len(flattened_teams)
 assert len(flattened_teams) == len(points)
+for i, team in enumerate(flattened_teams):
+    points[i] = float(input(f"Score for team {team}:"))
+    
 expected_points = dict(zip(flattened_teams, points))
 print(matchups)
 print(expected_points)
@@ -64,9 +69,9 @@ odds_today["Upper XGBoost"] = y_upper
 init(autoreset=True)
 
 def get_row_color(lower, upper, total):
-    if min(lower, upper) > total + 0.5:
+    if min(lower, upper) > total + 0.75:
         return Fore.GREEN
-    elif max(lower, upper) < total - 0.5:
+    elif max(lower, upper) < total - 0.75:
         return Fore.RED
     else:
         return ''

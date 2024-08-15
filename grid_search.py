@@ -33,13 +33,13 @@ param_grid = {
 """
 
 # Load the model from the file
-with open('linear_regression_model.pkl', 'rb') as file:
+with open('linear_regression_model_new.pkl', 'rb') as file:
     loaded_model = pickle.load(file)
 
 relative_performance = x_train['Relative Performance']
 
-shifted_relative_performance = relative_performance - relative_performance.min() + 1  # Shift to make all values positive
-sqrt_relative_performance = np.sqrt(shifted_relative_performance)
+shifted_relative_performance = relative_performance + 35 + 1  # Shift to make all values positive
+sqrt_relative_performance = np.log10(shifted_relative_performance)
 
 # Now you can use the loaded model to make predictions
 predictions = loaded_model.predict(np.array(sqrt_relative_performance).reshape(-1, 1))
@@ -47,9 +47,9 @@ predictions = loaded_model.predict(np.array(sqrt_relative_performance).reshape(-
 x_train['Adjusted Points'] = x_train['DARKO'] + predictions
 
 param_grid = {
-    'max_depth': [3],
+    'max_depth': [3, 4, 5],
     'learning_rate': [0.05],
-    'subsample': [0.5, 0.7, 0.9],
+    'subsample': [0.7, 0.8],
     'objective': ['reg:quantileerror'],
     "quantile_alpha": [0.5]
 }

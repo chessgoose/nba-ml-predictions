@@ -21,10 +21,13 @@ def get_team_points_today():
     wait = WebDriverWait(driver, 10)  #5 seconds timeout
 
     # Wait until the dates elements are present
-    data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="style_slot"]')))  # Adjust the substring as needed
+    data = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[class*="market-bt"]')))  # Adjust the substring as needed
     
     assert len(data) != 0
     print(len(data))
+
+    for d in data:
+        print(d.text)
 
     # First team should be the first team on WNBA matchups for the day
     totals = []

@@ -12,7 +12,7 @@ from datetime import datetime
 # R = 100 - optimal 
 def calculate_kalman_points(game_data, R, P_0):
     # Calculate Q: variance of the differences between consecutive points
-    Q = np.var(np.diff(game_data['PTS'])) / 3
+    Q = np.var(np.diff(game_data['PTS'])) / 2
 
     game_data = game_data.sort_values(by='GAME_DATE')
 

@@ -62,7 +62,7 @@ for x in tqdm(range(20)):
 
     print("Best iteration: ", model.best_iteration)
     
-    if model.best_iteration <= 30:
+    if model.best_iteration <= 50:
         continue
 
     predictions = model.predict(test)

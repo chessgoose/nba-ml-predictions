@@ -117,3 +117,4 @@ odds_today["EV"] = ev
 odds_today["Wager Fraction"] = wagers
 
 print(odds_today)
+

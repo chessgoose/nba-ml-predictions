@@ -306,10 +306,12 @@ def calculate_wnba_features(df, today, matchups, expected_points):
                 print(opponent_ppg)
                 my_ppg = calculate_avg_points_before_date(my_team, game_date)
                 print(my_ppg)
-                relative_performance = expected_total - calculate_avg_points_before_date(my_team, game_date) 
+                print(expected_total)
+                relative_performance = expected_total - my_ppg
+                print(relative_performance)
 
             last_5_minutes = gamelog.loc[row_index + 1: row_index + 5, "MIN"].values
-            #print(last_5_minutes)
+            print(last_5_minutes)
             #past_minutes = gamelog.loc[row_index + 3 : row_index + 10, "MIN"].values
             #print(past_minutes)
             
@@ -326,7 +328,7 @@ def calculate_wnba_features(df, today, matchups, expected_points):
             # Overall under rate and variance
             past_games = gamelog.loc[row_index + 1 :,  "PTS"].values
             last_10_median = np.median(past_games[:10])
-            #print(past_games)
+            print(past_games)
 
 
             # We don't have enough data to extract anything meaningful
@@ -371,6 +373,9 @@ def calculate_wnba_features(df, today, matchups, expected_points):
 
     new_df = pd.DataFrame(dataset, columns=headers)
     new_df = new_df.astype(float)
+    if not today:
+        drop_regression_stats(new_df)
+
     return new_df
 
 if __name__ == "__main__":

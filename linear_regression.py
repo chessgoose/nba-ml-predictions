@@ -4,7 +4,7 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_regression_data, drop_regression_stats
+from dataloading import load_regression_data, drop_regression_stats, load_2023_data
 import warnings
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
@@ -12,15 +12,14 @@ import matplotlib.pyplot as plt
 """
 https://github.com/slavafive/ML-medium/blob/master/quantile_regression.ipynb
 """
+
 league = "nba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 random_seed = 42
 np.random.seed(random_seed)
 
-data = load_regression_data('wnba')
-lines = data['Line']
-OU = data['OU Result']
+data = load_2023_data()
 points = data['Points']
 print(data.head())
 
@@ -31,14 +30,17 @@ print(data.head())
 relative_performance = data['Relative Performance']
 data['Difference'] = data['Points'] - data['DARKO']
 
-# TODO: Try log transofrmation
-shifted_relative_performance = relative_performance - relative_performance.min() + 1  # Shift to make all values positive -- BIASED? though
+# TODO: Try log transofrmation?
+shifted_relative_performance = relative_performance + 36 # Shift to make all values positive -- BIASED? though
 sqrt_relative_performance = np.sqrt(shifted_relative_performance)
+
+
+logged_difference = np.array(np.log(data['Difference'] + 30)).reshape(-1, 1)
 
 y_axis = data['Difference']
 
 acc_results = []
-x_train, x_test, y_train, y_test = train_test_split(np.array(sqrt_relative_performance).reshape(-1, 1), y_axis, test_size=0.2, shuffle=True, random_state=random_seed)
+x_train, x_test, y_train, y_test = train_test_split(relative_performance, logged_difference, test_size=0.2, shuffle=True, random_state=random_seed)
 
 # Initialize and train the linear regression model
 model = LinearRegression()
