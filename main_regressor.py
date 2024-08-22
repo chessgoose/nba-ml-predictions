@@ -1,10 +1,33 @@
+
+"""
+TODO: 
+Software Engineering
+- Design frontend interface (once it works consistently)
+- Pin ball loss
+- include all players from the season and all games -- just use the dataset as a testing dataset and train on the rest LMFAO. this will significantly expand dataset. remove ppg below 5
+
+- Combine create_dataset_from_odds and wnba_dataset
+- New features
+    - Travel distance between games 
+
+- Clean up and comment code
+    - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
+- Include other odds for points
+
+- Long term - SQL Databases
+
+BACKLOG
+- PCA ? 
+- Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
+- Revise scraping methodology to improve consistency
+
+"""
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 import sys
 from get_odds import get_odds_today, get_matchups, get_team_points_today
 from dataloading import drop_regression_stats
-from nba_reg import calculate_features
 from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
 from train_nn_regressor import QuantileRegressor
@@ -53,6 +76,10 @@ data = calculate_features(odds_today, True, [], []) if league == "nba" else calc
 print(data)
 drop_regression_stats(data)
 
+variances = data['Variance'].values
+data.drop(['Variance'], axis=1, inplace=True)
+print(data)
+
 # Get XG Boost model's predictions
 model = xgb.Booster()
 model.load_model(ou_model_name) 
@@ -83,7 +110,7 @@ for index, row in odds_today.iterrows():
     total = row["Line"]
     color = get_row_color(lower, upper, total)
 
-    print(color + f"{row['Date']} - {row['Player']} - Line: {total} - Over: {row['Over']} - Under: {row['Under']} - Lower XGBoost: {lower:.2f} - Upper XGBoost: {upper:.2f}" + Style.RESET_ALL)
+    print(color + f"{row['Date']} - {row['Player']} - Line: {total} - Over: {row['Over']} - Under: {row['Under']} - Lower XGBoost: {lower:.2f} - Upper XGBoost: {upper:.2f} - Variance: {variances[index]}" + Style.RESET_ALL)
 
 # Deinitialize colorama
 deinit()

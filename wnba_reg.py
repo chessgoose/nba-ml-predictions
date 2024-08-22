@@ -253,7 +253,7 @@ def calculate_wnba_features(df, today, matchups, expected_points):
     print(f"Collected records for {player_count} players")
     
     dataset = []
-    headers = ["L10 Median", "Kalman", "DARKO", "Relative Performance", "Home", "Recent T", "Spread"]
+    headers = ["L10 Median", "Variance", "DARKO", "Relative Performance", "Home", "Recent T", "Spread"]
     num_features = len(headers)
     
     if not today:
@@ -333,7 +333,7 @@ def calculate_wnba_features(df, today, matchups, expected_points):
 
             # We don't have enough data to extract anything meaningful
             # 8 is a reasonable number because 8 games should be enough to 
-            if len(past_games) < 8:
+            if len(past_games) < 8 and not today:
                 continue
 
             last_5_points = gamelog.loc[row_index + 1 : row_index + 5, "PTS"].values
@@ -354,16 +354,16 @@ def calculate_wnba_features(df, today, matchups, expected_points):
 
             # needs to be properly sorted 
             last_games = gamelog.tail(len(past_games))
-            kalman = calculate_kalman_points(last_games, final_delta_t=rest_days)
+            variance = np.var(last_5_points, ddof=1)
             # if not today else np.datetime64(datetime.now())
             ed = calculate_ed_points(last_games, current_date=np.datetime64(gamelog.loc[row_index, 'GAME_DATE'])) if not today else calculate_ed_points(last_games, current_date=np.datetime64(datetime.now()))
 
             if not today:
                 OU_result = (gamelog.loc[row_index, 'PTS'] > row["Line"]).astype(int)
-                dataset.append([last_10_median, kalman, ed, relative_performance, home, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
+                dataset.append([last_10_median, variance, ed, relative_performance, home, recent_t_statistic, spread, gamelog.loc[row_index, 'PTS'], row["Line"], OU_result])
             else:
                 # ["L10 Median", "Kalman", "DARKO", "Relative Performance", "Rest Days", "Recent T", "Spread"]
-                dataset.append([last_10_median, kalman, ed, relative_performance, home, recent_t_statistic, spread])
+                dataset.append([last_10_median, variance, ed, relative_performance, home, recent_t_statistic, spread])
         except:
             if today:
                 dataset.append([0 in range(num_features)])
@@ -373,9 +373,6 @@ def calculate_wnba_features(df, today, matchups, expected_points):
 
     new_df = pd.DataFrame(dataset, columns=headers)
     new_df = new_df.astype(float)
-    if not today:
-        drop_regression_stats(new_df)
-
     return new_df
 
 if __name__ == "__main__":

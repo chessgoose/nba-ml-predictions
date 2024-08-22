@@ -11,7 +11,6 @@ import xgboost as xgb
 import sys
 from get_odds import get_odds_today, get_matchups, get_team_points_today
 from dataloading import drop_regression_stats, load_regression_data
-from nba_reg import calculate_features
 from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
 from train_nn_regressor import QuantileRegressor
@@ -37,6 +36,9 @@ y_test = data['Points']
 
 drop_regression_stats(data)
 data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
+
+variances = data['Variance'].values
+data.drop(['Variance'], axis=1, inplace=True)
 print(data)
 
 predictions = model.predict(xgb.DMatrix(data, missing=-np.inf))
@@ -44,8 +46,10 @@ predictions = model.predict(xgb.DMatrix(data, missing=-np.inf))
 y_lower = predictions[:, 0]  # alpha=0.476
 y_upper = predictions[:, 1]  # alpha=0.524
 
-padding = 0.75
+padding = 0.8
+variance_threshold = 30
 valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
+valid_indices = valid_indices[np.where(variances[valid_indices] < variance_threshold)]
 
 valid_predictions = (y_lower[valid_indices] + y_upper[valid_indices]) / 2
 valid_y_test = y_test.iloc[valid_indices]
