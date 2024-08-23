@@ -34,9 +34,7 @@ data['Difference'] = data['Points'] - data['DARKO']
 shifted_relative_performance = relative_performance + 36 # Shift to make all values positive -- BIASED? though
 sqrt_relative_performance = np.sqrt(shifted_relative_performance)
 
-
-logged_difference = np.array(np.log(data['Difference'] + 30)).reshape(-1, 1)
-
+logged_difference = np.array(np.log(data['Difference'] + 36)).reshape(-1, 1)
 y_axis = data['Difference']
 
 acc_results = []
@@ -75,5 +73,5 @@ print(model.score(x_test, y_test))
 import pickle
 
 # Save the model to a file
-with open('linear_regression_model.pkl', 'wb') as file:
+with open('models/linear_regression/linear_regression_model.pkl', 'wb') as file:
     pickle.dump(model, file)

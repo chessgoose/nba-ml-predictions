@@ -4,7 +4,7 @@ import time
 import numpy as np
 import random
 from datetime import datetime
-from dataloading import drop_unused_statistics
+from utils.dataloading import drop_unused_statistics
 from scipy.stats import ttest_ind
 import rpy2
 import rpy2.robjects as ro

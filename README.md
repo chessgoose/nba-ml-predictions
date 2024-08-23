@@ -2,3 +2,7 @@
 
 ## Task Formulation
 Make an accurate market on the number of points scored by WNBA players
+
+## Setup instructions
+Run main_regressor.py
+

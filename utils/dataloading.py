@@ -66,7 +66,8 @@ def load_regression_data(league):
 def drop_regression_stats(data):
     data.drop(["L10 Median", "Home", "Recent T", "Spread"], axis=1, inplace=True)
 
-    #data.drop(["L10 Median", "Kalman", "Home", "Recent T", "Spread"], axis=1, inplace=True)
+    if "Kalman" in data.columns:
+        data.drop(["Kalman"], axis=1, inplace=True)
 
 def load_2023_data():
     data = pd.read_csv('data/2023_wnba_season.csv')

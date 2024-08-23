@@ -1,33 +1,27 @@
 
 """
 TODO: 
-Software Engineering
-- Design frontend interface (once it works consistently)
+- Write up with image
+- Convert CSV to SQLite 
 - Pin ball loss
-- include all players from the season and all games -- just use the dataset as a testing dataset and train on the rest LMFAO. this will significantly expand dataset. remove ppg below 5
+- Clean up and comment code
 
-- Combine create_dataset_from_odds and wnba_dataset
+- Design frontend interface 
+
 - New features
     - Travel distance between games 
-
-- Clean up and comment code
     - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
-- Include other odds for points
 
-- Long term - SQL Databases
 
 BACKLOG
-- PCA ? 
 - Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
-- Revise scraping methodology to improve consistency
-
 """
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 import sys
 from get_odds import get_odds_today, get_matchups, get_team_points_today
-from dataloading import drop_regression_stats
+from utils.dataloading import drop_regression_stats, load_regression_data
 from wnba_reg import calculate_wnba_features
 from utils.odds import calculate_kelly_criterion
 from train_nn_regressor import QuantileRegressor

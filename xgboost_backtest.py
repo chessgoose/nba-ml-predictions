@@ -16,16 +16,12 @@ from utils.odds import calculate_kelly_criterion
 from train_nn_regressor import QuantileRegressor
 import os
 import warnings
-from colorama import Fore, Style, init, deinit
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error
-
 
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
 ou_model_name = 'models/regression/wnba/XGBoost_2023.json'
-
-# Get XG Boost model's predictions
 model = xgb.Booster()
 model.load_model(ou_model_name) 
 

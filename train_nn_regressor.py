@@ -1,6 +1,6 @@
 """
 TODO:
-- Remember to remove rows with NaN/missing values since that will fuck things up
+- Remember to remove rows with NaN/missing values 
 
 """
 import numpy as np
@@ -11,7 +11,7 @@ import torch.optim as optim
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_regression_data, drop_regression_stats
+from utils.dataloading import load_regression_data, drop_regression_stats, load_2023_data
 from sklearn.preprocessing import StandardScaler
 import joblib
 import warnings
@@ -35,6 +35,7 @@ class QuantileRegressor(nn.Module):
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
+        #x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -68,7 +69,7 @@ def train_model(model, criterion, optimizer, train_loader, val_loader, num_epoch
         if val_loss < best_loss:
             best_loss = val_loss
             epochs_no_improve = 0
-            torch.save(model.state_dict(), 'nn_models/wnba/NN.pth')
+            torch.save(model.state_dict(), f'nn_models/wnba/NN_{val_loss}.pth')
         else:
             epochs_no_improve += 1
 
@@ -76,8 +77,8 @@ def train_model(model, criterion, optimizer, train_loader, val_loader, num_epoch
             print('Early stopping!')
             break
 
-def load_data(data, points, lines, test_size=0.2, batch_size=32):
-    x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(data, points, lines, test_size=test_size, shuffle=True)
+def load_data(data, points, test_size=0.2, batch_size=32):
+    x_train, x_test, y_train, y_test = train_test_split(data, points, test_size=test_size, shuffle=True)
 
     # Initialize the scaler
     scaler = StandardScaler()
@@ -89,7 +90,7 @@ def load_data(data, points, lines, test_size=0.2, batch_size=32):
     x_test = scaler.transform(x_test)
     
     # Save the scaler for future use
-    joblib.dump(scaler, 'scaler.pkl')
+    joblib.dump(scaler, 'nn_models/scaler.pkl')
 
     train_dataset = torch.utils.data.TensorDataset(torch.tensor(x_train, dtype=torch.float32), torch.tensor(y_train.values, dtype=torch.float32))
     val_dataset = torch.utils.data.TensorDataset(torch.tensor(x_test, dtype=torch.float32), torch.tensor(y_test.values, dtype=torch.float32))
@@ -97,7 +98,7 @@ def load_data(data, points, lines, test_size=0.2, batch_size=32):
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_loader, val_loader, y_test, z_test
+    return train_loader, val_loader, y_test
 
 def main():
     league = "wnba"
@@ -106,27 +107,25 @@ def main():
     np.random.seed(random_seed)
     torch.manual_seed(random_seed)
 
-    data = load_regression_data(league)
-    lines = data['Line']
-    OU = data['OU Result']
-    points = data['Points']
+    data = load_2023_data()
+    points = data["Points"]
     print(data.head())
 
     drop_regression_stats(data)
-    data.drop(["OU Result", "Line", "Points"], axis=1, inplace=True)
+    data.drop(["Points"], axis=1, inplace=True)
     print(data.head())
 
     quantiles = np.array([0.476, 0.524])
 
     acc_results = []
     for _ in tqdm(range(15)):
-        train_loader, val_loader, y_test, z_test = load_data(data, points, lines)
+        train_loader, val_loader, y_test = load_data(data, points)
 
         input_dim = data.shape[1]
         output_dim = len(quantiles)
         model = QuantileRegressor(input_dim, output_dim)
         criterion = QuantileLoss(torch.tensor(quantiles))
-        optimizer = optim.Adam(model.parameters(), lr=1e-3)
+        optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 
         train_model(model, criterion, optimizer, train_loader, val_loader)
 
@@ -144,39 +143,10 @@ def main():
         y_lower = predictions[:, 0]  # alpha=0.476
         y_upper = predictions[:, 1]  # alpha=0.524
 
-        padding = 0.5
-        valid_indices = np.where((z_test < np.minimum(y_upper, y_lower) - padding) | (z_test > np.maximum(y_lower, y_upper) + padding))[0]
-
-        if len(valid_indices) == 0:
-            print("No valid predictions outside the range [predictions_low, predictions_high]")
-            continue
-
-        valid_predictions = (y_lower[valid_indices] + y_upper[valid_indices]) / 2
-        valid_y_test = y_test.iloc[valid_indices]
-        valid_z_test = z_test.iloc[valid_indices]
-
-        mae = mean_absolute_error(valid_y_test, valid_predictions)
+        predictions = (y_lower + y_upper) / 2
+        mae = mean_absolute_error(y_test, predictions)
         print(f"MAE: {mae}")
 
-        predicted_ou_results = np.where(valid_predictions > valid_z_test, 1, 0)
-        actual_ou_results = np.where(valid_y_test > valid_z_test, 1, 0)
-        acc = round(np.mean(predicted_ou_results == actual_ou_results) * 100, 1)
-        print(f"Accuracy: {acc}% on {len(predicted_ou_results)} results")
-        acc_results.append(acc)
-
-        if acc == max(acc_results):
-            plt.figure(figsize=(10, 6))
-            plt.scatter(valid_y_test, valid_predictions, color='blue', label='Predictions')
-
-            min_val = min(min(valid_y_test), min(valid_predictions))
-            max_val = max(max(valid_y_test), max(valid_predictions))
-            plt.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--', label='Perfect Prediction')
-
-            plt.xlabel('Actual Values (y_test)')
-            plt.ylabel('Predicted Values')
-            plt.title('Actual vs Predicted Values')
-            plt.legend()
-            plt.show()
 
 if __name__ == "__main__":
     main()
