@@ -1,20 +1,23 @@
 
 """
 TODO: 
-- Write up with image
-- Convert CSV to SQLite 
+- Calculate earnings (kelly/fixed), not just accuracy!
 - Pin ball loss
 - Clean up and comment code
+- Front end ideally can input player, write the lines, then you can submit
+- Convert CSV to SQLite 
 
 - Design frontend interface 
 
 - New features
     - Travel distance between games 
     - Pass in "DataLoader" object with more information so you don't have to pass in a bunch of props -- OOP principles
-
+    - Enable manual input of lines through CSV
 
 BACKLOG
 - Look at 2022-23 NBA season stats to determine which factors are most useful for predicting points
+- Tableau for data visualization
+
 """
 import numpy as np
 import pandas as pd
@@ -30,6 +33,7 @@ import warnings
 from colorama import Fore, Style, init, deinit
 
 league = "wnba"
+manual = True
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def get_best_model(league):
@@ -46,8 +50,21 @@ def get_best_model(league):
 ou_model_name = 'models/regression/WNBA/XGBoost_2023.json'
 print(ou_model_name)
 
+def load_from_csv():
+    dtype_dict = {
+        'Player': 'str',  # Read column1 as float
+        'Line': 'float',    # Read column2 as string
+        'Over': 'float',  # Read column3 as float
+        'Under': 'float'     # Read column4 as string
+    }
+
+    df = pd.read_csv("data/manual_input.csv", dtype=dtype_dict)
+    df['Date'] = pd.to_datetime('today').date()
+    return df
+
 # get odds
-odds_today = get_odds_today(league)
+odds_today = get_odds_today(league) if not manual else load_from_csv()
+
 if odds_today.empty:
     sys.exit(f"No {league} games for today")
 print(odds_today)
@@ -55,7 +72,6 @@ print(odds_today)
 # Get points
 matchups = get_matchups()
 # points = get_team_points_today()  # set to be 0 if there is an issue
-# TODO: input points manually since fuck pinnacle
 flattened_teams = [item for sublist in matchups for item in sublist]
 points = [0] * len(flattened_teams)
 assert len(flattened_teams) == len(points)
@@ -89,10 +105,12 @@ odds_today["Upper XGBoost"] = y_upper
 # Initialize colorama
 init(autoreset=True)
 
+padding = 1.0
+
 def get_row_color(lower, upper, total):
-    if min(lower, upper) > total + 0.75:
+    if min(lower, upper) > total + padding:
         return Fore.GREEN
-    elif max(lower, upper) < total - 0.75:
+    elif max(lower, upper) < total - padding:
         return Fore.RED
     else:
         return ''

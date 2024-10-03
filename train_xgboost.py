@@ -54,7 +54,7 @@ for x in tqdm(range(20)):
         "quantile_alpha": quantiles,
         'max_depth': 3,
         'eta': 0.05,
-        'subsample': 0.5
+        'subsample': 0.7
     }
 
     #  'interaction_constraints': [["L10 Median", "Minutes Diff"], ["L10 Median", "Rest Days"]]

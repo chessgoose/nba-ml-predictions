@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 import scipy.stats as stats
 from tqdm import tqdm
 import warnings
-from dataloading import load_regression_data, drop_regression_stats, load_2023_data
+from utils.dataloading import load_regression_data, drop_regression_stats, load_2023_data
 
 league = "wnba"
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -23,7 +23,7 @@ drop_regression_stats(data)
 data.drop(["Points"], axis=1, inplace=True)
 print(data.head())
 
-quantiles = np.array([0.476, 0.524])
+quantiles = np.array([0.425, 0.575])
 
 def calculate_coverage(predictions, y_test, quantiles):
     coverages = []
@@ -52,7 +52,7 @@ for x in tqdm(range(20)):
         "quantile_alpha": quantiles,
         'max_depth': 3,
         'eta': 0.05,
-        'subsample': 0.7
+        'subsample': 0.8
     }
 
     #  'interaction_constraints': [["L10 Median", "Minutes Diff"], ["L10 Median", "Rest Days"]]

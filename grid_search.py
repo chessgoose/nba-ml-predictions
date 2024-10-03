@@ -4,7 +4,7 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from dataloading import load_data, load_regression_data, load_2023_data
+from utils.dataloading import load_data, load_regression_data, load_2023_data
 from sklearn.model_selection import GridSearchCV
 import warnings
 from itertools import combinations
@@ -33,7 +33,7 @@ param_grid = {
 """
 
 # Load the model from the file
-with open('linear_regression_model_new.pkl', 'rb') as file:
+with open('models/linear_regression/linear_regression_model_new.pkl', 'rb') as file:
     loaded_model = pickle.load(file)
 
 relative_performance = x_train['Relative Performance']

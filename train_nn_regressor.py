@@ -39,7 +39,7 @@ class QuantileRegressor(nn.Module):
         x = self.fc3(x)
         return x
 
-def train_model(model, criterion, optimizer, train_loader, val_loader, num_epochs=1000, early_stopping_rounds=40):
+def train_model(model, criterion, optimizer, train_loader, val_loader, num_epochs=1000, early_stopping_rounds=30):
     best_loss = float('inf')
     epochs_no_improve = 0
 
@@ -69,13 +69,14 @@ def train_model(model, criterion, optimizer, train_loader, val_loader, num_epoch
         if val_loss < best_loss:
             best_loss = val_loss
             epochs_no_improve = 0
-            torch.save(model.state_dict(), f'nn_models/wnba/NN_{val_loss}.pth')
         else:
             epochs_no_improve += 1
 
         if epochs_no_improve >= early_stopping_rounds:
             print('Early stopping!')
+            torch.save(model.state_dict(), f'nn_models/wnba/NN_{str(round(val_loss, 2))}.pth')
             break
+
 
 def load_data(data, points, test_size=0.2, batch_size=32):
     x_train, x_test, y_train, y_test = train_test_split(data, points, test_size=test_size, shuffle=True)
@@ -115,7 +116,7 @@ def main():
     data.drop(["Points"], axis=1, inplace=True)
     print(data.head())
 
-    quantiles = np.array([0.476, 0.524])
+    quantiles = np.array([float(4/9), float(5/9)])
 
     acc_results = []
     for _ in tqdm(range(15)):

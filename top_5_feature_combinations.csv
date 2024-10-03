@@ -1,0 +1,11 @@
+features,best_params,best_score
+"('Recent T', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-4.976007278478141
+"('Kalman', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.7}",-4.9935727940255275
+"('Spread', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.7}",-5.000199020096721
+"('Adjusted Points',)","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.7}",-5.015265282121442
+"('Home', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.030219668567816
+"('L10 Median', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.033087509522375
+"('Relative Performance', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.036870098273124
+"('DARKO', 'Adjusted Points')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.7}",-5.038485254978946
+"('DARKO', 'Relative Performance')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.7}",-5.048438595606774
+"('DARKO', 'Spread')","{'learning_rate': 0.05, 'max_depth': 3, 'objective': 'reg:quantileerror', 'quantile_alpha': 0.5, 'subsample': 0.8}",-5.094411616220399

@@ -124,11 +124,13 @@ def handle_popups(driver):
 
 # Returns: pandas dataframe with odds 
 def get_odds_today(league="nba"):
+    # Doesn't work
+    # https://sports.il.betmgm.com/en/sports/events/connecticut-sun-at-new-york-liberty-16085695?market=Players&tab=score
     data = []
     headers = ["Date", "Player", "Line", "Over", "Under"]
     url = "https://sportsbook.draftkings.com/nba-player-props?category=player-points&subcategory=points"
     if league != "nba":
-        url = "https://sportsbook.draftkings.com/leagues/basketball/wnba?category=player-points&subcategory=points"
+        url = "https://sportsbook.draftkings.com/leagues/basketball/wnba?category=player-points&subcategory=points-o%2Fu"
         
     chrome_options = webdriver.ChromeOptions()
     # chrome_options.add_argument("--headless")  # Run in headless mode (without a visible browser window)
